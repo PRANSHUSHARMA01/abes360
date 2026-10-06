@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 
 const accountId = process.env.R2_ACCOUNT_ID || 'e1eb6dbbb4524e1a5ba1402c44caa221';
-const accessKeyId = process.env.R2_ACCESS_KEY_ID || '';
-const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || '';
+const accessKeyId = process.env.R2_ACCESS_KEY_ID || '8b314e2a0eaf075a80a61a9e3d79b936';
+const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || '7196876db8c331b52b07cc2b89db60f3dd048617dfd7ac01498582219b236ff0';
 const bucket = process.env.R2_BUCKET_NAME || 'clasy';
 const region = 'auto';
 
