@@ -1,0 +1,38 @@
+{
+  "name": "Clasy — ABES Timetable & Notes",
+  "short_name": "Clasy",
+  "description": "College timetable and 5-unit notes in one minimal app.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Timetable",
+      "url": "/timetable",
+      "description": "View live class timetable"
+    },
+    {
+      "name": "Notes Library",
+      "url": "/notes",
+      "description": "Read 5-unit notes in app"
+    }
+  ]
+}

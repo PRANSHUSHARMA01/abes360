@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --background: #f5f5f7; --foreground: #1d1d1f; }
+
+html { background: var(--background); }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+button, input, select, textarea { font: inherit; }
+
+.apple-card { @apply rounded-3xl border border-zinc-200/80 bg-white shadow-sm; }
+.apple-eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400; }
+.apple-label { @apply mb-1.5 block text-sm font-medium text-zinc-700; }
+.apple-text-input { @apply w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10; }
+.apple-select { @apply rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10; }
+.apple-input-wrap { @apply flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10; }
+.apple-input-wrap input { @apply min-w-0 flex-1 bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400; }
+.apple-primary-button { @apply inline-flex items-center gap-2 rounded-full bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 active:scale-[0.98]; }
+.apple-secondary-button { @apply inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 active:scale-[0.98]; }
+.apple-icon-button { @apply inline-flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-900; }
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 999px; }
+
+@keyframes ringPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,.25); } 50% { box-shadow: 0 0 0 8px rgba(52,211,153,0); } }
+.live-pulse { animation: ringPulse 2s infinite; }
