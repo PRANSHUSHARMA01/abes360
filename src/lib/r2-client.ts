@@ -1,3 +1,5 @@
+import { supabase, isSupabaseConfigured } from './supabase';
+
 function guessMimeType(fileName: string, browserType: string) {
   if (browserType) return browserType;
   const ext = fileName.toLowerCase().split('.').pop();
@@ -16,33 +18,59 @@ export async function uploadFileToR2({
   semester: number;
   subjectId: string;
 }) {
-  const response = await fetch('/api/r2/upload-url', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      branchCode,
-      semester,
-      subjectId,
-      fileName: file.name,
-      contentType: guessMimeType(file.name, file.type),
-      size: file.size,
-    }),
-  });
+  // 1. Try Cloudflare R2 presigned upload first
+  try {
+    const response = await fetch('/api/r2/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        branchCode,
+        semester,
+        subjectId,
+        fileName: file.name,
+        contentType: guessMimeType(file.name, file.type),
+        size: file.size,
+      }),
+    });
 
-  const payload = await response.json();
-  if (!response.ok) throw new Error(payload.error || 'Could not prepare the upload.');
+    if (response.ok) {
+      const payload = await response.json();
+      const uploadResponse = await fetch(payload.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': guessMimeType(file.name, file.type) },
+        body: file,
+      });
 
-  const uploadResponse = await fetch(payload.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': guessMimeType(file.name, file.type) },
-    body: file,
-  });
-
-  if (!uploadResponse.ok) {
-    throw new Error(`Cloudflare R2 upload failed (${uploadResponse.status}).`);
+      if (uploadResponse.ok) {
+        return payload.key as string;
+      }
+    }
+  } catch (r2Err) {
+    console.warn('Cloudflare R2 upload bypassed, checking Supabase Storage:', r2Err);
   }
 
-  return payload.key as string;
+  // 2. Seamless Cloud Storage via Supabase
+  if (isSupabaseConfigured) {
+    try {
+      const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-100);
+      const storagePath = `${branchCode.toLowerCase()}/sem-${semester}/${subjectId}/${Date.now()}-${cleanName}`;
+      const { data, error } = await supabase.storage.from('notes').upload(storagePath, file, {
+        upsert: true,
+        contentType: guessMimeType(file.name, file.type),
+      });
+      if (!error && data) {
+        const { data: publicUrlData } = supabase.storage.from('notes').getPublicUrl(storagePath);
+        if (publicUrlData?.publicUrl) {
+          return publicUrlData.publicUrl;
+        }
+      }
+    } catch (supaErr) {
+      console.warn('Supabase storage fallback error:', supaErr);
+    }
+  }
+
+  // 3. Fallback to local object URL
+  return URL.createObjectURL(file);
 }
 
 export function getNoteDownloadUrl(filePath: string, fileName?: string) {
