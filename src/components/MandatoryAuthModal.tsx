@@ -22,13 +22,17 @@ export const MandatoryAuthModal: React.FC<MandatoryAuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [emailInput, setEmailInput] = useState('');
+  const [showEmailInput, setShowEmailInput] = useState(false);
+
   if (!isOpen) return null;
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await DataService.signInWithGoogle();
+      const email = emailInput.trim() || undefined;
+      const res = await DataService.signInWithGoogle(email);
       if (res.error) {
         setError(res.error);
         return;
@@ -65,6 +69,19 @@ export const MandatoryAuthModal: React.FC<MandatoryAuthModalProps> = ({
         )}
 
         <div className="mt-6 space-y-3">
+          {showEmailInput && (
+            <div className="text-left mb-2">
+              <label className="text-xs font-semibold text-zinc-700 block mb-1">Enter your Gmail address:</label>
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="yourname@gmail.com"
+                className="w-full rounded-xl border border-zinc-300 px-3.5 py-2.5 text-xs text-zinc-900 focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+          )}
+
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
@@ -92,10 +109,20 @@ export const MandatoryAuthModal: React.FC<MandatoryAuthModalProps> = ({
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                Sign in with Google Account
+                {showEmailInput ? 'Continue with this Google ID' : 'Sign in with Google Account'}
               </>
             )}
           </button>
+
+          {!showEmailInput && (
+            <button
+              type="button"
+              onClick={() => setShowEmailInput(true)}
+              className="text-[11px] text-zinc-500 hover:text-blue-600 underline font-medium"
+            >
+              Sign in with custom Gmail address
+            </button>
+          )}
         </div>
 
         <div className="mt-6 border-t border-zinc-100 pt-4 flex items-center justify-center gap-2 text-[11px] text-zinc-400">
