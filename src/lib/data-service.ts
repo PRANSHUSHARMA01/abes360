@@ -194,13 +194,23 @@ export const DataService = {
     }
 
     let localNotes = getLocalItem<Note[]>(STORAGE_KEYS.NOTES, INITIAL_NOTES);
+    // Purge any legacy placeholder notes with empty file_path from local storage
+    if (localNotes.some((n) => !n.file_path || n.file_path.trim() === '')) {
+      localNotes = localNotes.filter((n) => Boolean(n.file_path && n.file_path.trim().length > 0));
+      setLocalItem(STORAGE_KEYS.NOTES, localNotes);
+    }
+
     const subjects = getLocalItem<Subject[]>(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
     const branches = getLocalItem<Branch[]>(STORAGE_KEYS.BRANCHES, INITIAL_BRANCHES);
 
     // Merge notes by ID with cloud notes taking precedence
     const noteMap = new Map<string, Note>();
-    localNotes.forEach((n) => noteMap.set(n.id, n));
-    cloudNotes.forEach((n) => noteMap.set(n.id, n));
+    localNotes.forEach((n) => {
+      if (n.file_path && n.file_path.trim().length > 0) noteMap.set(n.id, n);
+    });
+    cloudNotes.forEach((n) => {
+      if (n.file_path && n.file_path.trim().length > 0) noteMap.set(n.id, n);
+    });
 
     let allNotes = Array.from(noteMap.values());
     if (branchId) allNotes = allNotes.filter((n) => n.branch_id === branchId);

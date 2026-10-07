@@ -157,36 +157,5 @@ export const INITIAL_TIMETABLE_SLOTS: TimetableSlot[] = [
   { id: 'ds-fri-ads2', branch_id: 'b-cse-ds', semester: 3, day_of_week: 5, start_time: '15:40', end_time: '16:30', subject_id: 's-ds-303', teacher_id: 't-shaili-gupta', session_type: 'lecture', room: DS_ROOM },
 ];
 
-export const INITIAL_NOTES: Note[] = [
-  // 25CS301 — Object Oriented Programming Paradigm (Units 1 to 5)
-  { id: 'note-oop-u1', branch_id: 'b-cse', subject_id: 's-cse-301', semester: 3, unit: 1, title: 'Unit 1: Programming Paradigms & C++ Basics', file_path: '', created_at: '2026-08-10T10:00:00Z' },
-  { id: 'note-oop-u2', branch_id: 'b-cse', subject_id: 's-cse-301', semester: 3, unit: 2, title: 'Unit 2: Classes, Objects & Memory Management', file_path: '', created_at: '2026-08-11T11:00:00Z' },
-  { id: 'note-oop-u3', branch_id: 'b-cse', subject_id: 's-cse-301', semester: 3, unit: 3, title: 'Unit 3: Polymorphism & Operator Overloading', file_path: '', created_at: '2026-08-12T09:00:00Z' },
-  { id: 'note-oop-u4', branch_id: 'b-cse', subject_id: 's-cse-301', semester: 3, unit: 4, title: 'Unit 4: Inheritance & Virtual Functions', file_path: '', created_at: '2026-08-13T14:00:00Z' },
-  { id: 'note-oop-u5', branch_id: 'b-cse', subject_id: 's-cse-301', semester: 3, unit: 5, title: 'Unit 5: Templates & Standard Template Library (STL)', file_path: '', created_at: '2026-08-14T16:00:00Z' },
+export const INITIAL_NOTES: Note[] = [];
 
-  // 25CS302 — Operating System (Units 1 to 5)
-  { id: 'note-os-u1', branch_id: 'b-cse', subject_id: 's-cse-302', semester: 3, unit: 1, title: 'Unit 1: Introduction to Operating Systems & System Calls', file_path: '', created_at: '2026-08-15T10:30:00Z' },
-  { id: 'note-os-u2', branch_id: 'b-cse', subject_id: 's-cse-302', semester: 3, unit: 2, title: 'Unit 2: Process Management & CPU Scheduling', file_path: '', created_at: '2026-08-16T12:00:00Z' },
-  { id: 'note-os-u3', branch_id: 'b-cse', subject_id: 's-cse-302', semester: 3, unit: 3, title: 'Unit 3: Process Synchronization & Concurrency', file_path: '', created_at: '2026-08-17T15:00:00Z' },
-  { id: 'note-os-u4', branch_id: 'b-cse', subject_id: 's-cse-302', semester: 3, unit: 4, title: 'Unit 4: Deadlocks, Prevention & Avoidance', file_path: '', created_at: '2026-08-18T10:00:00Z' },
-  { id: 'note-os-u5', branch_id: 'b-cse', subject_id: 's-cse-302', semester: 3, unit: 5, title: 'Unit 5: Memory Management, Virtual Memory & File Systems', file_path: '', created_at: '2026-08-19T11:00:00Z' },
-
-  // 25CS303 — Advanced Data Structure (Units 1 to 5)
-  { id: 'note-ads-u1', branch_id: 'b-cse', subject_id: 's-cse-303', semester: 3, unit: 1, title: 'Unit 1: Advanced Trees & Balanced Search Trees', file_path: '', created_at: '2026-08-20T09:30:00Z' },
-  { id: 'note-ads-u2', branch_id: 'b-cse', subject_id: 's-cse-303', semester: 3, unit: 2, title: 'Unit 2: Multiway Trees, B-Trees & B+ Trees', file_path: '', created_at: '2026-08-21T10:00:00Z' },
-  { id: 'note-ads-u3', branch_id: 'b-cse', subject_id: 's-cse-303', semester: 3, unit: 3, title: 'Unit 3: Advanced Heaps & Priority Queues', file_path: '', created_at: '2026-08-22T13:00:00Z' },
-  { id: 'note-ads-u4', branch_id: 'b-cse', subject_id: 's-cse-303', semester: 3, unit: 4, title: 'Unit 4: Graph Algorithms & Flow Networks', file_path: '', created_at: '2026-08-23T14:30:00Z' },
-  { id: 'note-ads-u5', branch_id: 'b-cse', subject_id: 's-cse-303', semester: 3, unit: 5, title: 'Unit 5: String Matching & Disjoint Set Structures', file_path: '', created_at: '2026-08-24T16:00:00Z' },
-
-  // 25OE3XX — Discrete Structure & Theory of Logic
-  { id: 'note-dstl-u1', branch_id: 'b-cse', subject_id: 's-cse-oe3xx', semester: 3, unit: 1, title: 'Unit 1: Set Theory, Relations & Functions', file_path: '', created_at: '2026-08-25T11:00:00Z' },
-  { id: 'note-dstl-u2', branch_id: 'b-cse', subject_id: 's-cse-oe3xx', semester: 3, unit: 2, title: 'Unit 2: Algebraic Structures & Group Theory', file_path: '', created_at: '2026-08-26T12:00:00Z' },
-  { id: 'note-dstl-u3', branch_id: 'b-cse', subject_id: 's-cse-oe3xx', semester: 3, unit: 3, title: 'Unit 3: Propositional & Predicate Logic', file_path: '', created_at: '2026-08-27T13:30:00Z' },
-  { id: 'note-dstl-u4', branch_id: 'b-cse', subject_id: 's-cse-oe3xx', semester: 3, unit: 4, title: 'Unit 4: Lattices & Boolean Algebra', file_path: '', created_at: '2026-08-28T15:00:00Z' },
-  { id: 'note-dstl-u5', branch_id: 'b-cse', subject_id: 's-cse-oe3xx', semester: 3, unit: 5, title: 'Unit 5: Combinatorics & Recurrence Relations', file_path: '', created_at: '2026-08-29T16:30:00Z' },
-
-  // CSE-DS Notes
-  { id: 'note-ds-as301-u1', branch_id: 'b-cse-ds', subject_id: 's-ds-as301', semester: 3, unit: 1, title: 'Unit 1: Linear Algebra & Matrix Decompositions', file_path: '', created_at: '2026-08-30T10:00:00Z' },
-  { id: 'note-ds-va301-u1', branch_id: 'b-cse-ds', subject_id: 's-ds-va301', semester: 3, unit: 1, title: 'Unit 1: Python Visualization Libraries (Matplotlib & Seaborn)', file_path: '', created_at: '2026-08-31T11:00:00Z' },
-];
