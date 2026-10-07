@@ -40,10 +40,10 @@ export const Footer: React.FC = () => {
           <div className="space-y-3 md:col-span-2">
             <div className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-icon.png" alt="ABESNOTES" className="h-7 w-7 object-contain" />
+              <img src="/logo-icon.png" alt="ABES 360" className="h-7 w-7 object-contain" />
               <div className="text-base font-extrabold tracking-tight text-zinc-950 flex items-center">
-                <span>abes</span>
-                <span className="text-blue-600">notes</span>
+                <span>ABES</span>
+                <span className="text-blue-600 ml-1">360</span>
               </div>
             </div>
             <p className="text-xs leading-relaxed text-zinc-500 max-w-sm">
@@ -132,7 +132,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between border-t border-zinc-100 pt-6 text-[11px] text-zinc-400 sm:flex-row">
-          <p>© {new Date().getFullYear()} Clasy. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} ABES 360. All rights reserved.</p>
           <div className="mt-2 flex items-center gap-1 sm:mt-0">
             <span>Crafted with</span>
             <Heart className="h-3 w-3 text-red-500 fill-red-500" />

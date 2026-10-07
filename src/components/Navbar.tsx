@@ -74,13 +74,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenOnboarding }) => {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/logo-icon.png" 
-            alt="ABESNOTES" 
+            alt="ABES 360" 
             className="h-9 w-9 object-contain drop-shadow-sm transition hover:scale-105" 
           />
           <div>
-            <div className="text-[17px] font-extrabold tracking-tight text-zinc-950 flex items-center">
-              <span>abes</span>
-              <span className="text-blue-600">notes</span>
+            <div className="text-[18px] font-extrabold tracking-tight text-zinc-950 flex items-center">
+              <span>ABES</span>
+              <span className="text-blue-600 ml-1">360</span>
             </div>
             <div className="hidden text-[10px] font-medium text-zinc-400 sm:block -mt-0.5">your college, simplified</div>
           </div>

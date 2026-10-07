@@ -1,7 +1,7 @@
 {
-  "name": "ABESNOTES — College Timetable & 5-Unit Notes",
-  "short_name": "ABESNOTES",
-  "description": "ABES College timetable and 5-unit notes in one minimal app.",
+  "name": "ABES 360 — College Timetable & 5-Unit Notes",
+  "short_name": "ABES 360",
+  "description": "ABES 360: College timetable and 5-unit notes in one minimal app.",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
