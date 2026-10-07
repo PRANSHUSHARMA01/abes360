@@ -1,29 +1,21 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Note, Branch, Subject, AuthUser } from '@/lib/types';
+import Link from 'next/link';
+import { Note, Branch, Subject } from '@/lib/types';
 import { DataService } from '@/lib/data-service';
-import { deleteFileFromR2, getNoteDownloadUrl, getNoteViewUrl, uploadFileToR2 } from '@/lib/r2-client';
-import { NoteViewerModal } from '@/components/NoteViewerModal';
-import { MandatoryAuthModal } from '@/components/MandatoryAuthModal';
+import { getNoteDownloadUrl, getNoteViewUrl } from '@/lib/r2-client';
 import { ABES_SYLLABUS } from '@/lib/syllabus-data';
 import { 
   BookOpen, 
   Download, 
   FileText, 
-  Plus, 
   Search, 
-  Upload, 
   X, 
-  Loader2, 
-  Eye, 
   Layers, 
-  Filter, 
   Sparkles,
-  CheckCircle2,
-  Calendar,
-  Lock,
-  ExternalLink
+  ExternalLink,
+  Lock
 } from 'lucide-react';
 
 interface NotesCatalogProps {
@@ -31,7 +23,6 @@ interface NotesCatalogProps {
   initialSemester?: number;
 }
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const UNITS = [1, 2, 3, 4, 5];
 
 export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b-cse', initialSemester = 3 }) => {
@@ -43,29 +34,13 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedUnit, setSelectedUnit] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Auth state
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [pendingNote, setPendingNote] = useState<Note | null>(null);
-
-  // In-app viewer modal state
-  const [viewingNote, setViewingNote] = useState<Note | null>(null);
-
-  // Upload modal state
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadSubjectId, setUploadSubjectId] = useState('');
-  const [uploadUnit, setUploadUnit] = useState<number>(1);
-  const [uploadDesc, setUploadDesc] = useState('');
-  const [fileObject, setFileObject] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     DataService.getBranches().then(setBranches);
-    DataService.getCurrentUser().then(setAuthUser);
-    const unsub = DataService.onAuthStateChange(setAuthUser);
-    return () => unsub();
+    if (typeof window !== 'undefined') {
+      setIsAdmin(sessionStorage.getItem('clasy_admin_session') === 'true');
+    }
   }, []);
 
   const fetchNotes = React.useCallback(async () => {
@@ -79,7 +54,6 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
       if (selectedSubject !== 'all' && !list.some((s) => s.id === selectedSubject)) {
         setSelectedSubject('all');
       }
-      setUploadSubjectId((current) => (list.some((s) => s.id === current) ? current : list[0]?.id || ''));
     });
     fetchNotes();
   }, [selectedBranch, selectedSemester, selectedSubject, fetchNotes]);
@@ -102,80 +76,6 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
     });
   }, [notes, searchQuery, selectedUnit]);
 
-  const resetUpload = (defaultUnit = 1, defaultSubjectId?: string) => {
-    setUploadTitle('');
-    setUploadDesc('');
-    setFileObject(null);
-    setUploadUnit(defaultUnit);
-    setUploadSubjectId(defaultSubjectId || (selectedSubject !== 'all' ? selectedSubject : subjects[0]?.id || ''));
-  };
-
-  const handleOpenUpload = (unit = 1, subjectId?: string) => {
-    if (!authUser) {
-      setAuthModalOpen(true);
-      return;
-    }
-    resetUpload(unit, subjectId);
-    setUploadModalOpen(true);
-  };
-
-  const handleReadNote = (note: Note) => {
-    if (!authUser) {
-      setPendingNote(note);
-      setAuthModalOpen(true);
-      return;
-    }
-    setViewingNote(note);
-  };
-
-  const handleUploadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!uploadTitle.trim() || !uploadSubjectId) {
-      alert('Please select a subject and enter a note title.');
-      return;
-    }
-    if (fileObject && fileObject.size > MAX_FILE_SIZE) {
-      alert('Maximum file size is 50 MB.');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      let key = '';
-      if (fileObject) {
-        try {
-          key = await uploadFileToR2({
-            file: fileObject,
-            branchCode: selectedBranchCode,
-            semester: selectedSemester,
-            subjectId: uploadSubjectId,
-          });
-        } catch (r2Err) {
-          console.warn('R2 upload fallback:', r2Err);
-          key = URL.createObjectURL(fileObject);
-        }
-      }
-
-      await DataService.addNote({
-        branch_id: selectedBranch,
-        semester: selectedSemester,
-        subject_id: uploadSubjectId,
-        unit: uploadUnit,
-        title: uploadTitle.trim(),
-        file_path: key,
-        description: uploadDesc.trim(),
-      });
-
-      setUploadModalOpen(false);
-      resetUpload();
-      fetchNotes();
-    } catch (err: any) {
-      alert(err?.message || 'Could not save the note.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Search and Filters Header */}
@@ -190,13 +90,16 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
             </div>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-950 sm:text-3xl">Notes</h1>
             <p className="mt-1 text-sm text-zinc-500">
-              Read subject study materials directly inside the app without downloading. Categorized by unit.
+              Access official subject study materials and PDFs directly. Categorized by unit.
             </p>
           </div>
-          <button onClick={() => handleOpenUpload(selectedUnit === 'all' ? 1 : selectedUnit, selectedSubject !== 'all' ? selectedSubject : undefined)} className="apple-primary-button">
-            <Upload className="h-4 w-4" />
-            Upload Notes
-          </button>
+
+          {isAdmin && (
+            <Link href="/admin/notes" className="apple-primary-button self-start lg:self-auto">
+              <Lock className="h-4 w-4" />
+              Manage Notes (Admin)
+            </Link>
+          )}
         </div>
 
         {/* Primary Filter Bar */}
@@ -300,12 +203,11 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
                 {currentSubjectObj.code ? `[${currentSubjectObj.code}] ` : ''}{currentSubjectObj.name}
               </h2>
             </div>
-            <button
-              onClick={() => handleOpenUpload(selectedUnit === 'all' ? 1 : selectedUnit, currentSubjectObj.id)}
-              className="apple-secondary-button text-xs"
-            >
-              <Plus className="h-4 w-4" /> Add Note to Subject
-            </button>
+            {isAdmin && (
+              <Link href="/admin/notes" className="apple-secondary-button text-xs">
+                <Lock className="h-3.5 w-3.5" /> Admin Manager
+              </Link>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -332,12 +234,6 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
                         </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleOpenUpload(unitNumber, currentSubjectObj.id)}
-                      className="inline-flex items-center gap-1.5 self-start rounded-xl bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 sm:self-auto transition"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Upload to Unit {unitNumber}
-                    </button>
                   </div>
 
                   {unitNotes.length === 0 ? (
@@ -488,149 +384,6 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
             </div>
           )}
         </>
-      )}
-
-      {/* In-App Note Viewer Modal */}
-      <NoteViewerModal
-        note={viewingNote}
-        isOpen={Boolean(viewingNote)}
-        onClose={() => setViewingNote(null)}
-      />
-
-      {/* Mandatory Auth Modal */}
-      <MandatoryAuthModal
-        isOpen={authModalOpen}
-        onSuccess={(loggedUser) => {
-          setAuthUser(loggedUser);
-          setAuthModalOpen(false);
-          if (pendingNote) {
-            setViewingNote(pendingNote);
-            setPendingNote(null);
-          }
-        }}
-        title="Sign in with Google to Read &amp; Upload Notes"
-        subtitle="Access to ABES notes and study materials requires signing in with your Google account."
-      />
-
-      {/* Upload Note Modal */}
-      {uploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-          <div className="w-full max-w-lg rounded-t-[28px] bg-white p-6 shadow-2xl sm:rounded-[28px] sm:p-7 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="apple-eyebrow">Clasy library</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-tight text-zinc-950">Upload Note</h2>
-              </div>
-              <button 
-                onClick={() => { setUploadModalOpen(false); resetUpload(); }} 
-                className="apple-icon-button" 
-                aria-label="Close upload modal"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleUploadSubmit} className="mt-6 space-y-4">
-              <div>
-                <label className="apple-label">Select subject</label>
-                <select 
-                  required 
-                  value={uploadSubjectId} 
-                  onChange={(e) => setUploadSubjectId(e.target.value)} 
-                  className="apple-select w-full"
-                >
-                  <option value="">Select a subject...</option>
-                  {subjects.map((subject) => (
-                    <option key={subject.id} value={subject.id}>
-                      {subject.code ? `[${subject.code}] ` : ''}{subject.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="apple-label">Unit</label>
-                <select
-                  value={uploadUnit}
-                  onChange={(e) => {
-                    const u = Number(e.target.value);
-                    setUploadUnit(u);
-                    const selSub = subjects.find((s) => s.id === uploadSubjectId);
-                    const syllabusSub = ABES_SYLLABUS.find((s) => s.code === selSub?.code || s.name === selSub?.name);
-                    const unitObj = syllabusSub?.units?.find((un) => un.unitNumber === u);
-                    if (unitObj?.unitName) {
-                      setUploadTitle(`Unit ${u}: ${unitObj.unitName}`);
-                    } else {
-                      setUploadTitle(`Unit ${u} Notes`);
-                    }
-                  }}
-                  className="apple-select w-full"
-                >
-                  {UNITS.map((u) => {
-                    const selSub = subjects.find((s) => s.id === uploadSubjectId);
-                    const syllabusSub = ABES_SYLLABUS.find((s) => s.code === selSub?.code || s.name === selSub?.name);
-                    const unitObj = syllabusSub?.units?.find((un) => un.unitNumber === u);
-                    const unitLabel = unitObj?.unitName ? `Unit ${u} – ${unitObj.unitName}` : `Unit ${u}`;
-
-                    return (
-                      <option key={u} value={u}>
-                        {unitLabel}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              <div>
-                <label className="apple-label">Unit / Note title</label>
-                <input 
-                  required 
-                  value={uploadTitle} 
-                  onChange={(e) => setUploadTitle(e.target.value)} 
-                  placeholder="e.g. Unit 1: Programming Paradigms & C++ Basics" 
-                  className="apple-text-input" 
-                />
-              </div>
-
-              <div>
-                <label className="apple-label">Attach PDF File <span className="font-normal text-zinc-400">(.pdf)</span></label>
-                <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4 transition hover:border-blue-400 hover:bg-blue-50/50">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
-                    <Upload className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-zinc-800">
-                      {fileObject?.name || 'Choose PDF file from device'}
-                    </p>
-                    <p className="text-xs text-zinc-400">PDF will be displayed directly in the in-app viewer</p>
-                  </div>
-                  <input 
-                    type="file" 
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.png,.jpg,.jpeg" 
-                    className="sr-only" 
-                    onChange={(e) => setFileObject(e.target.files?.[0] || null)} 
-                  />
-                </label>
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={uploading} 
-                className="apple-primary-button w-full justify-center disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Uploading PDF...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4" /> Save & Upload PDF
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        </div>
       )}
     </div>
   );

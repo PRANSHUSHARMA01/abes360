@@ -17,12 +17,11 @@ export default function AdminLoginPage() {
 
   const pinLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPin = pin.trim().toLowerCase();
-    if (['admin123', 'admin', '1234', 'clasy', '0000'].includes(cleanPin)) {
+    if (pin.trim() === 'Pranshu@3927') {
       sessionStorage.setItem('clasy_admin_session', 'true');
       router.push('/admin/dashboard');
     } else {
-      setError('Invalid admin PIN. Use "admin123" or "1234".');
+      setError('Invalid admin password.');
     }
   };
 
