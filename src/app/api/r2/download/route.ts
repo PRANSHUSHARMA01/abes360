@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createPresignedUrl, isR2Configured } from '@/lib/r2';
+import { applyClasyWatermark } from '@/lib/watermark';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'R2 is not configured.' }, { status: 503 });
     }
 
-    const downloadUrl = createPresignedUrl({
+    const presignedUrl = createPresignedUrl({
       method: 'GET',
       key,
       expiresIn: 3600,
@@ -27,21 +28,27 @@ export async function GET(request: Request) {
       inline,
     });
 
-    // Fetch from R2 on the server side to stream directly to client, avoiding cross-origin iframe / CORS issues
     try {
-      const r2Res = await fetch(downloadUrl);
+      const r2Res = await fetch(presignedUrl);
       if (r2Res.ok) {
         const arrayBuffer = await r2Res.arrayBuffer();
-        const contentType = r2Res.headers.get('content-type') || (filename.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
+        const contentType = r2Res.headers.get('content-type') || (filename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
         
-        return new Response(arrayBuffer, {
+        let finalBuffer: Uint8Array | ArrayBuffer = arrayBuffer;
+
+        // If downloading (not inline viewing) and the document is a PDF, apply the Clasy watermark
+        if (!inline && (contentType.includes('pdf') || filename.toLowerCase().endsWith('.pdf'))) {
+          finalBuffer = await applyClasyWatermark(arrayBuffer);
+        }
+
+        return new Response(finalBuffer as any, {
           status: 200,
           headers: {
             'Content-Type': contentType,
             'Content-Disposition': inline 
               ? `inline; filename="${encodeURIComponent(filename)}"`
               : `attachment; filename="${encodeURIComponent(filename)}"`,
-            'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600',
+            'Cache-Control': inline ? 'public, max-age=86400, stale-while-revalidate=3600' : 'no-cache',
           },
         });
       }
@@ -49,8 +56,8 @@ export async function GET(request: Request) {
       console.warn('Server streaming from R2 failed, falling back to 302 redirect:', fetchErr);
     }
 
-    return NextResponse.redirect(downloadUrl, 302);
+    return NextResponse.redirect(presignedUrl, 302);
   } catch (error: any) {
-    return NextResponse.json({ error: error?.message || 'Could not create download URL.' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Could not process file.' }, { status: 500 });
   }
 }
