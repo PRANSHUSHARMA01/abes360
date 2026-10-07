@@ -7,15 +7,15 @@ import { DataService } from '@/lib/data-service';
 import { getNoteDownloadUrl, getNoteViewUrl } from '@/lib/r2-client';
 import { ABES_SYLLABUS } from '@/lib/syllabus-data';
 import { 
-  BookOpen, 
   Download, 
   FileText, 
   Search, 
   X, 
   Layers, 
-  Sparkles,
-  ExternalLink,
-  Lock
+  Sparkles, 
+  ExternalLink, 
+  Lock,
+  BookOpen
 } from 'lucide-react';
 
 interface NotesCatalogProps {
@@ -31,7 +31,7 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedBranch, setSelectedBranch] = useState(initialBranchId);
   const [selectedSemester, setSelectedSemester] = useState(initialSemester);
-  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedUnit, setSelectedUnit] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -44,23 +44,24 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
   }, []);
 
   const fetchNotes = React.useCallback(async () => {
-    const data = await DataService.getNotes(selectedBranch, selectedSemester, selectedSubject === 'all' ? undefined : selectedSubject);
+    const data = await DataService.getNotes(selectedBranch, selectedSemester, selectedSubject || undefined);
     setNotes(data);
   }, [selectedBranch, selectedSemester, selectedSubject]);
 
   useEffect(() => {
     DataService.getSubjects(selectedBranch, selectedSemester).then((list) => {
       setSubjects(list);
-      if (selectedSubject !== 'all' && !list.some((s) => s.id === selectedSubject)) {
-        setSelectedSubject('all');
-      }
+      setSelectedSubject((current) => {
+        if (list.some((s) => s.id === current)) return current;
+        return list[0]?.id || '';
+      });
     });
     fetchNotes();
   }, [selectedBranch, selectedSemester, selectedSubject, fetchNotes]);
 
   const selectedBranchObj = branches.find((b) => b.id === selectedBranch);
   const selectedBranchCode = selectedBranchObj?.code || 'CSE';
-  const currentSubjectObj = subjects.find((s) => s.id === selectedSubject);
+  const currentSubjectObj = subjects.find((s) => s.id === selectedSubject) || subjects[0];
 
   const filteredNotes = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -85,12 +86,12 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
             <div className="flex items-center gap-2">
               <span className="apple-eyebrow">Study library</span>
               <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600">
-                <Sparkles className="h-3 w-3" /> In-App Reader Enabled
+                <Sparkles className="h-3 w-3" /> Direct PDF Access
               </span>
             </div>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-950 sm:text-3xl">Notes</h1>
             <p className="mt-1 text-sm text-zinc-500">
-              Access official subject study materials and PDFs directly. Categorized by unit.
+              Select a subject below to view its structured 5-unit notes and study materials.
             </p>
           </div>
 
@@ -110,7 +111,7 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notes, subjects..."
+              placeholder="Search in this subject..."
               className="w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
             />
             {searchQuery && (
@@ -144,9 +145,8 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
           <select
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
-            className="apple-select"
+            className="apple-select font-medium text-zinc-900"
           >
-            <option value="all">All Subjects ({subjects.length})</option>
             {subjects.map((sub) => (
               <option key={sub.id} value={sub.id}>
                 {sub.code ? `[${sub.code}] ` : ''}{sub.name}
@@ -172,7 +172,7 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
           </button>
           {UNITS.map((u) => {
             const isSelected = selectedUnit === u;
-            const count = notes.filter((n) => (n.unit || 1) === u).length;
+            const count = filteredNotes.filter((n) => (n.unit || 1) === u && Boolean(n.file_path && n.file_path.trim().length > 0)).length;
             return (
               <button
                 key={u}
@@ -193,8 +193,8 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
         </div>
       </section>
 
-      {/* When a specific subject is selected, render its 5 Units */}
-      {selectedSubject !== 'all' && currentSubjectObj && (
+      {/* Structured 5 Units for Selected Subject */}
+      {currentSubjectObj ? (
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -299,91 +299,16 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
             })}
           </div>
         </section>
-      )}
-
-      {/* All Subjects Notes Grid */}
-      {selectedSubject === 'all' && (
-        <>
-          {filteredNotes.length === 0 ? (
-            <div className="apple-card px-6 py-16 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <h2 className="mt-4 text-lg font-semibold text-zinc-900">No notes uploaded yet</h2>
-              <p className="mx-auto mt-1 max-w-md text-sm text-zinc-500">
-                Study materials and unit PDFs will be uploaded soon.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredNotes.map((note) => {
-                const fileName = note.file_path ? (note.file_path.split('/').pop() || `${note.title}.pdf`) : `${note.title}.pdf`;
-                return (
-                  <article key={note.id} className="apple-card flex flex-col justify-between p-5 transition hover:-translate-y-0.5 hover:shadow-lg">
-                    <div>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                            <FileText className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-800">
-                                Unit {note.unit || 1}
-                              </span>
-                              <p className="truncate text-xs font-semibold text-zinc-500">
-                                {note.subject?.code || 'CSE'}
-                              </p>
-                            </div>
-                            <h2 className="mt-0.5 truncate text-sm font-semibold text-zinc-900 sm:text-base">
-                              {note.title}
-                            </h2>
-                          </div>
-                        </div>
-                        <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500">
-                          Sem {note.semester}
-                        </span>
-                      </div>
-
-                      <p className="mt-3 text-xs font-medium text-zinc-500 truncate">
-                        {note.subject?.name}
-                      </p>
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between gap-2 border-t border-zinc-100 pt-4">
-                      <span className="truncate text-[11px] text-zinc-400">
-                        {new Date(note.created_at).toLocaleDateString()}
-                      </span>
-                      
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={getNoteViewUrl(note.file_path, fileName)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="apple-primary-button py-2 px-3 text-xs"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" /> Open PDF
-                        </a>
-
-                        {note.file_path && (
-                          <a 
-                            href={getNoteDownloadUrl(note.file_path, fileName)} 
-                            download={fileName}
-                            className="apple-icon-button h-8 w-8" 
-                            title="Download file with Clasy watermark"
-                            aria-label={`Download ${note.title}`}
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </>
+      ) : (
+        <div className="apple-card px-6 py-16 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+            <BookOpen className="h-5 w-5" />
+          </div>
+          <h2 className="mt-4 text-lg font-semibold text-zinc-900">Select a Subject</h2>
+          <p className="mx-auto mt-1 max-w-md text-sm text-zinc-500">
+            Choose a subject from the dropdown above to view its structured 5 units.
+          </p>
+        </div>
       )}
     </div>
   );
