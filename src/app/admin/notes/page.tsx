@@ -14,12 +14,13 @@ import {
   X, 
   BookOpen, 
   Eye, 
-  Layers 
+  Layers,
+  ExternalLink
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { DataService } from '@/lib/data-service';
 import { Branch, Note, Subject } from '@/lib/types';
-import { deleteFileFromR2, getNoteDownloadUrl, uploadFileToR2 } from '@/lib/r2-client';
+import { deleteFileFromR2, getNoteDownloadUrl, getNoteViewUrl, uploadFileToR2 } from '@/lib/r2-client';
 import { NoteViewerModal } from '@/components/NoteViewerModal';
 
 const UNITS = [1, 2, 3, 4, 5];
@@ -220,14 +221,17 @@ export default function AdminNotesPage() {
                   <span className="text-xs text-zinc-400">{new Date(note.created_at).toLocaleDateString()}</span>
 
                   <div className="flex items-center justify-start gap-1.5 md:justify-end">
-                    {/* In-app Read action */}
-                    <button
-                      onClick={() => setViewingNote(note)}
-                      className="apple-icon-button text-blue-600 hover:bg-blue-50"
-                      title="Read Note in App"
-                    >
-                      <BookOpen className="h-4 w-4" />
-                    </button>
+                    {note.file_path && (
+                      <a
+                        href={getNoteViewUrl(note.file_path, fileName)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="apple-icon-button text-blue-600 hover:bg-blue-50"
+                        title="Open PDF in new tab"
+                      >
+                        <BookOpen className="h-4 w-4" />
+                      </a>
+                    )}
 
                     {note.file_path && (
                       <a 

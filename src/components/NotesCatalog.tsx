@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Note, Branch, Subject, AuthUser } from '@/lib/types';
 import { DataService } from '@/lib/data-service';
-import { deleteFileFromR2, getNoteDownloadUrl, uploadFileToR2 } from '@/lib/r2-client';
+import { deleteFileFromR2, getNoteDownloadUrl, getNoteViewUrl, uploadFileToR2 } from '@/lib/r2-client';
 import { NoteViewerModal } from '@/components/NoteViewerModal';
 import { MandatoryAuthModal } from '@/components/MandatoryAuthModal';
 import { ABES_SYLLABUS } from '@/lib/syllabus-data';
@@ -22,7 +22,8 @@ import {
   Sparkles,
   CheckCircle2,
   Calendar,
-  Lock
+  Lock,
+  ExternalLink
 } from 'lucide-react';
 
 interface NotesCatalogProps {
@@ -371,12 +372,14 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
                             </div>
 
                             <div className="mt-4 flex items-center gap-2 border-t border-zinc-100 pt-3">
-                              <button
-                                onClick={() => handleReadNote(note)}
+                              <a
+                                href={getNoteViewUrl(note.file_path, fileName)}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
                               >
-                                <BookOpen className="h-3.5 w-3.5" /> View PDF
-                              </button>
+                                <ExternalLink className="h-3.5 w-3.5" /> Open PDF
+                              </a>
 
                               {note.file_path && (
                                 <a
@@ -456,12 +459,14 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
                       </span>
                       
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleReadNote(note)}
+                        <a
+                          href={getNoteViewUrl(note.file_path, fileName)}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="apple-primary-button py-2 px-3 text-xs"
                         >
-                          <BookOpen className="h-3.5 w-3.5" /> Read Note
-                        </button>
+                          <ExternalLink className="h-3.5 w-3.5" /> Open PDF
+                        </a>
 
                         {note.file_path && (
                           <a 
