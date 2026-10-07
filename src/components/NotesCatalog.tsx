@@ -384,8 +384,9 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
                               {note.file_path && (
                                 <a
                                   href={getNoteDownloadUrl(note.file_path, fileName)}
+                                  download={fileName}
                                   className="apple-icon-button h-8 w-8 text-zinc-500 hover:text-zinc-900"
-                                  title="Download a copy"
+                                  title="Download a copy with Clasy watermark"
                                   aria-label="Download"
                                 >
                                   <Download className="h-3.5 w-3.5" />
@@ -471,8 +472,9 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
                         {note.file_path && (
                           <a 
                             href={getNoteDownloadUrl(note.file_path, fileName)} 
+                            download={fileName}
                             className="apple-icon-button h-8 w-8" 
-                            title="Download file"
+                            title="Download file with Clasy watermark"
                             aria-label={`Download ${note.title}`}
                           >
                             <Download className="h-3.5 w-3.5" />

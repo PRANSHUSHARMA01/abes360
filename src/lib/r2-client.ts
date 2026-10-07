@@ -108,24 +108,28 @@ export async function uploadFileToR2({
 
 export function getNoteDownloadUrl(filePath: string, fileName?: string) {
   if (!filePath) return '';
-  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:') || filePath.startsWith('data:')) {
+  if (filePath.startsWith('blob:') || filePath.startsWith('data:')) {
     return filePath;
   }
+  const cleanName = (fileName || filePath.split('/').pop() || 'clasy-note.pdf').replace(/[/\\?%*:|"<>]/g, '-');
+  const safeFilename = cleanName.toLowerCase().endsWith('.pdf') ? cleanName : `${cleanName}.pdf`;
   const params = new URLSearchParams({ 
     key: filePath, 
-    filename: fileName || filePath.split('/').pop() || 'clasy-note.pdf' 
+    filename: safeFilename 
   });
   return `/api/r2/download?${params.toString()}`;
 }
 
 export function getNoteViewUrl(filePath: string, fileName?: string) {
   if (!filePath) return '';
-  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:') || filePath.startsWith('data:')) {
+  if (filePath.startsWith('blob:') || filePath.startsWith('data:')) {
     return filePath;
   }
+  const cleanName = (fileName || filePath.split('/').pop() || 'clasy-note.pdf').replace(/[/\\?%*:|"<>]/g, '-');
+  const safeFilename = cleanName.toLowerCase().endsWith('.pdf') ? cleanName : `${cleanName}.pdf`;
   const params = new URLSearchParams({ 
     key: filePath, 
-    filename: fileName || filePath.split('/').pop() || 'clasy-note.pdf',
+    filename: safeFilename,
     inline: 'true' 
   });
   return `/api/r2/download?${params.toString()}`;

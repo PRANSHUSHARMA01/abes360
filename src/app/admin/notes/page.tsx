@@ -236,8 +236,9 @@ export default function AdminNotesPage() {
                     {note.file_path && (
                       <a 
                         href={getNoteDownloadUrl(note.file_path, fileName)} 
+                        download={fileName}
                         className="apple-icon-button" 
-                        title="Download"
+                        title="Download with Clasy watermark"
                       >
                         <Download className="h-4 w-4" />
                       </a>
