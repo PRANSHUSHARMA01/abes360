@@ -14,10 +14,10 @@ export async function applyClasyWatermark(pdfBytes: Uint8Array | ArrayBuffer): P
     for (const page of pages) {
       const { width, height } = page.getSize();
 
-      // 1. Large Diagonal Center Watermark: "CLASY · ABES"
-      const watermarkText = 'CLASY · ABES';
-      const fontSize = Math.max(32, Math.min(width, height) * 0.085);
-      const textWidth = fontSize * 0.6 * watermarkText.length;
+      // 1. Large Diagonal Center Watermark: "CLASY"
+      const watermarkText = 'CLASY';
+      const fontSize = Math.max(36, Math.min(width, height) * 0.12);
+      const textWidth = fontSize * 0.65 * watermarkText.length;
       
       page.drawText(watermarkText, {
         x: width / 2 - textWidth / 2.2,
@@ -25,46 +25,46 @@ export async function applyClasyWatermark(pdfBytes: Uint8Array | ArrayBuffer): P
         size: fontSize,
         font: boldFont,
         color: rgb(0.12, 0.35, 0.85), // Premium Royal Blue
-        opacity: 0.22,
+        opacity: 0.2,
         rotate: degrees(45),
       });
 
-      // 2. Secondary Repeat Watermark (Top & Bottom Diagonals for Full Protection)
+      // 2. Secondary Repeat Watermark (Top & Bottom Diagonals)
       page.drawText('CLASY', {
         x: width * 0.2,
         y: height * 0.75,
-        size: fontSize * 0.65,
+        size: fontSize * 0.6,
         font: boldFont,
         color: rgb(0.12, 0.35, 0.85),
-        opacity: 0.14,
+        opacity: 0.12,
         rotate: degrees(45),
       });
 
       page.drawText('CLASY', {
         x: width * 0.6,
         y: height * 0.25,
-        size: fontSize * 0.65,
+        size: fontSize * 0.6,
         font: boldFont,
         color: rgb(0.12, 0.35, 0.85),
-        opacity: 0.14,
+        opacity: 0.12,
         rotate: degrees(45),
       });
 
       // 3. Top Header Bar Branding
-      page.drawText('CLASY — Official ABES Study Materials', {
+      page.drawText('CLASY — Study Materials & Notes', {
         x: 24,
         y: height - 16,
-        size: 8,
+        size: 8.5,
         font: boldFont,
         color: rgb(0.2, 0.3, 0.5),
         opacity: 0.6,
       });
 
       // 4. Bottom Footer Bar Branding
-      page.drawText('Downloaded from Clasy (ABES College Notes & Timetable) • https://clasy-tau.vercel.app', {
+      page.drawText('Downloaded from Clasy • https://clasy-tau.vercel.app', {
         x: 24,
         y: 12,
-        size: 7.5,
+        size: 8,
         font: regularFont,
         color: rgb(0.2, 0.2, 0.25),
         opacity: 0.6,

@@ -43,10 +43,9 @@ export const Footer: React.FC = () => {
                 C
               </div>
               <span className="text-base font-bold tracking-tight text-zinc-950">clasy</span>
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">ABES</span>
             </div>
             <p className="text-xs leading-relaxed text-zinc-500 max-w-sm">
-              Live timetable tracking and 5-unit study notes library built for students at ABES Engineering College.
+              Live timetable tracking and 5-unit study notes library. College, simplified.
             </p>
             <div className="flex items-center gap-3 pt-2 text-xs text-zinc-500">
               <button
@@ -131,7 +130,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between border-t border-zinc-100 pt-6 text-[11px] text-zinc-400 sm:flex-row">
-          <p>© {new Date().getFullYear()} Clasy. Built for ABES EC students.</p>
+          <p>© {new Date().getFullYear()} Clasy. All rights reserved.</p>
           <div className="mt-2 flex items-center gap-1 sm:mt-0">
             <span>Crafted with</span>
             <Heart className="h-3 w-3 text-red-500 fill-red-500" />

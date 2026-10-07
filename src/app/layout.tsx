@@ -2,21 +2,21 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://clasy.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://clasy-tau.vercel.app'),
   title: {
-    default: 'Clasy — ABES College Timetable & 5-Unit Notes',
+    default: 'Clasy — College Timetable & 5-Unit Notes',
     template: '%s | Clasy',
   },
-  description: 'Live college timetable and 5-unit study notes library for ABES engineering students. Track live classes, read notes in-app.',
+  description: 'Live college timetable and 5-unit study notes library. Track live classes, open PDF notes.',
   keywords: [
-    'ABES timetable',
-    'ABES notes',
+    'college timetable',
+    'college notes',
     'CSE semester 3 notes',
-    'CSE-DS notes',
+    'study notes',
     'in-app note viewer',
-    'college timetable app',
+    'clasy app',
   ],
-  authors: [{ name: 'Clasy Engineering Team' }],
+  authors: [{ name: 'Clasy Team' }],
   creator: 'Clasy',
   publisher: 'Clasy',
   manifest: '/manifest.json',

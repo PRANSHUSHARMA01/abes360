@@ -75,9 +75,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenOnboarding }) => {
             C
           </div>
           <div>
-            <div className="text-[17px] font-bold tracking-tight text-zinc-950 flex items-center gap-1.5">
+            <div className="text-[17px] font-bold tracking-tight text-zinc-950">
               clasy
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">ABES</span>
             </div>
             <div className="hidden text-[11px] text-zinc-400 sm:block">your college, simplified</div>
           </div>
