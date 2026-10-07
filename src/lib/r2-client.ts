@@ -3,7 +3,17 @@ import { supabase, isSupabaseConfigured } from './supabase';
 function guessMimeType(fileName: string, browserType: string) {
   if (browserType) return browserType;
   const ext = fileName.toLowerCase().split('.').pop();
-  const map: Record<string, string> = { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', txt: 'text/plain', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg' };
+  const map: Record<string, string> = { 
+    pdf: 'application/pdf', 
+    doc: 'application/msword', 
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+    ppt: 'application/vnd.ms-powerpoint', 
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
+    txt: 'text/plain', 
+    png: 'image/png', 
+    jpg: 'image/jpeg', 
+    jpeg: 'image/jpeg' 
+  };
   return map[ext || ''] || 'application/octet-stream';
 }
 
@@ -17,8 +27,31 @@ export async function uploadFileToR2({
   branchCode: string;
   semester: number;
   subjectId: string;
-}) {
-  // 1. Try Cloudflare R2 presigned upload first
+}): Promise<string> {
+  // 1. Primary: Server-side Direct Upload to Cloudflare R2 (Bypasses all client-side CORS issues)
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('branchCode', branchCode);
+    formData.append('semester', String(semester));
+    formData.append('subjectId', subjectId);
+
+    const directRes = await fetch('/api/r2/direct-upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (directRes.ok) {
+      const payload = await directRes.json();
+      if (payload.key) {
+        return payload.key as string;
+      }
+    }
+  } catch (directErr) {
+    console.warn('Direct R2 server upload attempt failed, trying presigned PUT:', directErr);
+  }
+
+  // 2. Secondary: Cloudflare R2 presigned upload
   try {
     const response = await fetch('/api/r2/upload-url', {
       method: 'POST',
@@ -46,10 +79,10 @@ export async function uploadFileToR2({
       }
     }
   } catch (r2Err) {
-    console.warn('Cloudflare R2 upload bypassed, checking Supabase Storage:', r2Err);
+    console.warn('Cloudflare R2 presigned upload bypassed, checking Supabase Storage:', r2Err);
   }
 
-  // 2. Seamless Cloud Storage via Supabase
+  // 3. Fallback: Supabase Storage
   if (isSupabaseConfigured) {
     try {
       const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-100);
@@ -69,34 +102,48 @@ export async function uploadFileToR2({
     }
   }
 
-  // 3. Fallback to local object URL
+  // 4. In-memory object URL fallback
   return URL.createObjectURL(file);
 }
 
 export function getNoteDownloadUrl(filePath: string, fileName?: string) {
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
-  const params = new URLSearchParams({ key: filePath, filename: fileName || filePath.split('/').pop() || 'clasy-note' });
+  if (!filePath) return '';
+  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:') || filePath.startsWith('data:')) {
+    return filePath;
+  }
+  const params = new URLSearchParams({ 
+    key: filePath, 
+    filename: fileName || filePath.split('/').pop() || 'clasy-note.pdf' 
+  });
   return `/api/r2/download?${params.toString()}`;
 }
 
 export function getNoteViewUrl(filePath: string, fileName?: string) {
   if (!filePath) return '';
-  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:') || filePath.startsWith('data:')) return filePath;
+  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:') || filePath.startsWith('data:')) {
+    return filePath;
+  }
   const params = new URLSearchParams({ 
     key: filePath, 
-    filename: fileName || filePath.split('/').pop() || 'clasy-note',
+    filename: fileName || filePath.split('/').pop() || 'clasy-note.pdf',
     inline: 'true' 
   });
   return `/api/r2/download?${params.toString()}`;
 }
 
 export async function deleteFileFromR2(filePath: string) {
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) return;
-  const response = await fetch('/api/r2/delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: filePath }),
-  });
-  const payload = await response.json();
-  if (!response.ok) throw new Error(payload.error || 'Could not delete the file from R2.');
+  if (!filePath || filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:')) return;
+  try {
+    const response = await fetch('/api/r2/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: filePath }),
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      console.warn('R2 delete warning:', payload?.error || 'Could not delete file');
+    }
+  } catch (delErr) {
+    console.warn('R2 delete exception:', delErr);
+  }
 }

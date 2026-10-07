@@ -175,65 +175,101 @@ export const DataService = {
 
   // NOTES
   async getNotes(branchId?: string, semester?: number, subjectId?: string): Promise<Note[]> {
+    let cloudNotes: Note[] = [];
     if (isSupabaseConfigured) {
-      let query = supabase.from('notes').select(`
-        *,
-        subject:subjects(*),
-        branch:branches(*)
-      `).order('created_at', { ascending: false });
+      try {
+        let query = supabase.from('notes').select('*').order('created_at', { ascending: false });
 
-      if (branchId) query = query.eq('branch_id', branchId);
-      if (semester) query = query.eq('semester', semester);
-      if (subjectId) query = query.eq('subject_id', subjectId);
+        if (branchId) query = query.eq('branch_id', branchId);
+        if (semester) query = query.eq('semester', semester);
+        if (subjectId) query = query.eq('subject_id', subjectId);
 
-      const { data, error } = await query;
-      if (!error && data) return data;
+        const { data, error } = await query;
+        if (!error && data && data.length > 0) {
+          cloudNotes = data;
+        }
+      } catch (err) {
+        console.warn('Supabase getNotes exception:', err);
+      }
     }
 
-    let notes = getLocalItem<Note[]>(STORAGE_KEYS.NOTES, INITIAL_NOTES);
-    if (!notes.some((n) => n.unit !== undefined) || notes.length < INITIAL_NOTES.length) {
-      notes = INITIAL_NOTES;
-      setLocalItem(STORAGE_KEYS.NOTES, INITIAL_NOTES);
-    }
+    let localNotes = getLocalItem<Note[]>(STORAGE_KEYS.NOTES, INITIAL_NOTES);
     const subjects = getLocalItem<Subject[]>(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
     const branches = getLocalItem<Branch[]>(STORAGE_KEYS.BRANCHES, INITIAL_BRANCHES);
 
-    if (branchId) notes = notes.filter((n) => n.branch_id === branchId);
-    if (semester) notes = notes.filter((n) => n.semester === semester);
-    if (subjectId) notes = notes.filter((n) => n.subject_id === subjectId);
+    // Merge notes by ID with cloud notes taking precedence
+    const noteMap = new Map<string, Note>();
+    localNotes.forEach((n) => noteMap.set(n.id, n));
+    cloudNotes.forEach((n) => noteMap.set(n.id, n));
 
-    return notes.map((note) => ({
+    let allNotes = Array.from(noteMap.values());
+    if (branchId) allNotes = allNotes.filter((n) => n.branch_id === branchId);
+    if (semester) allNotes = allNotes.filter((n) => n.semester === semester);
+    if (subjectId) allNotes = allNotes.filter((n) => n.subject_id === subjectId);
+
+    return allNotes.map((note) => ({
       ...note,
-      subject: subjects.find((s) => s.id === note.subject_id),
-      branch: branches.find((b) => b.id === note.branch_id),
+      subject: note.subject || subjects.find((s) => s.id === note.subject_id),
+      branch: note.branch || branches.find((b) => b.id === note.branch_id),
     }));
   },
 
   async addNote(noteData: Omit<Note, 'id' | 'created_at'>): Promise<Note> {
     const newNote: Note = {
       ...noteData,
-      id: 'note-' + Date.now(),
+      id: 'note-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
       created_at: new Date().toISOString(),
     };
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('notes').insert([noteData]).select().single();
-      if (!error && data) return data;
+      try {
+        const { error } = await supabase.from('notes').insert([{
+          id: newNote.id,
+          branch_id: newNote.branch_id,
+          subject_id: newNote.subject_id,
+          semester: newNote.semester,
+          unit: newNote.unit,
+          title: newNote.title,
+          file_path: newNote.file_path || '',
+          description: newNote.description || '',
+          created_at: newNote.created_at,
+        }]);
+
+        if (error) {
+          console.warn('Supabase insert note notice:', error.message);
+        }
+      } catch (err) {
+        console.warn('Supabase note insert exception:', err);
+      }
     }
 
     const currentNotes = getLocalItem<Note[]>(STORAGE_KEYS.NOTES, INITIAL_NOTES);
-    const updated = [newNote, ...currentNotes];
+    // If there is an existing empty placeholder note for the same subject & unit, replace it with the uploaded note
+    const filtered = currentNotes.filter((n) => {
+      if (n.subject_id === newNote.subject_id && n.unit === newNote.unit && !n.file_path) {
+        return false;
+      }
+      return n.id !== newNote.id;
+    });
+
+    const updated = [newNote, ...filtered];
     setLocalItem(STORAGE_KEYS.NOTES, updated);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
     return newNote;
   },
 
   async deleteNote(id: string): Promise<void> {
     if (isSupabaseConfigured) {
-      await supabase.from('notes').delete().eq('id', id);
+      try {
+        await supabase.from('notes').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase note delete error:', err);
+      }
     }
     const currentNotes = getLocalItem<Note[]>(STORAGE_KEYS.NOTES, INITIAL_NOTES);
     const updated = currentNotes.filter((n) => n.id !== id);
     setLocalItem(STORAGE_KEYS.NOTES, updated);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
   },
 
   // PREFERENCES
