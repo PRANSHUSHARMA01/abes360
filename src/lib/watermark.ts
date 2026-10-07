@@ -14,10 +14,10 @@ export async function applyClasyWatermark(pdfBytes: Uint8Array | ArrayBuffer): P
     for (const page of pages) {
       const { width, height } = page.getSize();
 
-      // 1. Large Diagonal Center Watermark: "CLASY"
-      const watermarkText = 'CLASY';
-      const fontSize = Math.max(36, Math.min(width, height) * 0.12);
-      const textWidth = fontSize * 0.65 * watermarkText.length;
+      // 1. Large Diagonal Center Watermark: "ABESNOTES"
+      const watermarkText = 'ABESNOTES';
+      const fontSize = Math.max(32, Math.min(width, height) * 0.09);
+      const textWidth = fontSize * 0.6 * watermarkText.length;
       
       page.drawText(watermarkText, {
         x: width / 2 - textWidth / 2.2,
@@ -30,8 +30,8 @@ export async function applyClasyWatermark(pdfBytes: Uint8Array | ArrayBuffer): P
       });
 
       // 2. Secondary Repeat Watermark (Top & Bottom Diagonals)
-      page.drawText('CLASY', {
-        x: width * 0.2,
+      page.drawText('ABESNOTES', {
+        x: width * 0.15,
         y: height * 0.75,
         size: fontSize * 0.6,
         font: boldFont,
@@ -40,8 +40,8 @@ export async function applyClasyWatermark(pdfBytes: Uint8Array | ArrayBuffer): P
         rotate: degrees(45),
       });
 
-      page.drawText('CLASY', {
-        x: width * 0.6,
+      page.drawText('ABESNOTES', {
+        x: width * 0.55,
         y: height * 0.25,
         size: fontSize * 0.6,
         font: boldFont,
@@ -51,7 +51,7 @@ export async function applyClasyWatermark(pdfBytes: Uint8Array | ArrayBuffer): P
       });
 
       // 3. Top Header Bar Branding
-      page.drawText('CLASY — Study Materials & Notes', {
+      page.drawText('ABESNOTES — Study Materials & Notes', {
         x: 24,
         y: height - 16,
         size: 8.5,
@@ -61,7 +61,7 @@ export async function applyClasyWatermark(pdfBytes: Uint8Array | ArrayBuffer): P
       });
 
       // 4. Bottom Footer Bar Branding
-      page.drawText('Downloaded from Clasy • https://clasy-tau.vercel.app', {
+      page.drawText('Downloaded from ABESNOTES • https://clasy-tau.vercel.app', {
         x: 24,
         y: 12,
         size: 8,

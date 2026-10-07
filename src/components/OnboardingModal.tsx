@@ -62,7 +62,7 @@ export const OnboardingModal: React.FC<{
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <p className="apple-eyebrow">Welcome to Clasy</p>
+              <p className="apple-eyebrow">Welcome to ABESNOTES</p>
               <h2 className="mt-0.5 text-xl font-bold tracking-tight text-zinc-950">
                 {user ? `Hi, ${user.name}` : 'Personalize Your Experience'}
               </h2>

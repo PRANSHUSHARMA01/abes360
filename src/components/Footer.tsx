@@ -38,11 +38,13 @@ export const Footer: React.FC = () => {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-3 md:col-span-2">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-600 text-xs font-black text-white">
-                C
+            <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-icon.png" alt="ABESNOTES" className="h-7 w-7 object-contain" />
+              <div className="text-base font-extrabold tracking-tight text-zinc-950 flex items-center">
+                <span>abes</span>
+                <span className="text-blue-600">notes</span>
               </div>
-              <span className="text-base font-bold tracking-tight text-zinc-950">clasy</span>
             </div>
             <p className="text-xs leading-relaxed text-zinc-500 max-w-sm">
               Live timetable tracking and 5-unit study notes library. College, simplified.

@@ -70,15 +70,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenOnboarding }) => {
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-600 text-white text-base font-black shadow-sm">
-            C
-          </div>
+        <Link href="/" className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src="/logo-icon.png" 
+            alt="ABESNOTES" 
+            className="h-9 w-9 object-contain drop-shadow-sm transition hover:scale-105" 
+          />
           <div>
-            <div className="text-[17px] font-bold tracking-tight text-zinc-950">
-              clasy
+            <div className="text-[17px] font-extrabold tracking-tight text-zinc-950 flex items-center">
+              <span>abes</span>
+              <span className="text-blue-600">notes</span>
             </div>
-            <div className="hidden text-[11px] text-zinc-400 sm:block">your college, simplified</div>
+            <div className="hidden text-[10px] font-medium text-zinc-400 sm:block -mt-0.5">your college, simplified</div>
           </div>
         </Link>
 

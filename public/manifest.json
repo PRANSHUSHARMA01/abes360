@@ -1,7 +1,7 @@
 {
-  "name": "Clasy — ABES Timetable & Notes",
-  "short_name": "Clasy",
-  "description": "College timetable and 5-unit notes in one minimal app.",
+  "name": "ABESNOTES — College Timetable & 5-Unit Notes",
+  "short_name": "ABESNOTES",
+  "description": "ABES College timetable and 5-unit notes in one minimal app.",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
@@ -11,15 +11,15 @@
   "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "/icons/icon-192.svg",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.svg",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
