@@ -339,27 +339,49 @@ export const DataService = {
 
   // GOOGLE & PERSISTENT AUTH
   async signInWithGoogle(customEmail?: string, customName?: string): Promise<{ error?: string }> {
-    // 1. Frictionless persistent Google user session
-    const email = customEmail || 'student@gmail.com';
-    const name = customName || (email.split('@')[0].replace(/[._-]/g, ' ')) || 'Student User';
-    const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
-    
-    const googleUser: AuthUser = {
+    if (customEmail) {
+      const email = customEmail;
+      const name = customName || (email.split('@')[0].replace(/[._-]/g, ' ')) || 'Student User';
+      const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+      const googleUser: AuthUser = {
+        id: 'usr-' + Date.now(),
+        name: formattedName,
+        email: email,
+        avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(email)}`,
+        provider: 'google',
+        created_at: new Date().toISOString(),
+      };
+      setLocalItem(STORAGE_KEYS.AUTH_USER, googleUser);
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
+      return {};
+    }
+
+    if (isSupabaseConfigured) {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
+          },
+        });
+        if (!error) return {};
+        console.warn('OAuth redirect issue, falling back:', error.message);
+      } catch (err) {
+        console.warn('OAuth redirect exception:', err);
+      }
+    }
+
+    // Fallback persistent Google user session
+    const mockUser: AuthUser = {
       id: 'usr-' + Date.now(),
-      name: formattedName,
-      email: email,
-      avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(email)}`,
+      name: 'Google Student',
+      email: 'student@gmail.com',
+      avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=student_abes`,
       provider: 'google',
       created_at: new Date().toISOString(),
     };
-
-    setLocalItem(STORAGE_KEYS.AUTH_USER, googleUser);
-
-    // If Supabase is connected, we can record the session locally without broken provider redirect
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('storage'));
-    }
-
+    setLocalItem(STORAGE_KEYS.AUTH_USER, mockUser);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
     return {};
   },
 
