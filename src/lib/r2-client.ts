@@ -12,7 +12,9 @@ function guessMimeType(fileName: string, browserType: string) {
     txt: 'text/plain', 
     png: 'image/png', 
     jpg: 'image/jpeg', 
-    jpeg: 'image/jpeg' 
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+    gif: 'image/gif'
   };
   return map[ext || ''] || 'application/octet-stream';
 }
@@ -111,8 +113,9 @@ export function getNoteDownloadUrl(filePath: string, fileName?: string) {
   if (filePath.startsWith('blob:') || filePath.startsWith('data:')) {
     return filePath;
   }
-  const cleanName = (fileName || filePath.split('/').pop() || 'clasy-note.pdf').replace(/[/\\?%*:|"<>]/g, '-');
-  const safeFilename = cleanName.toLowerCase().endsWith('.pdf') ? cleanName : `${cleanName}.pdf`;
+  const cleanName = (fileName || filePath.split('/').pop() || 'clasy-document.pdf').replace(/[/\\?%*:|"<>]/g, '-');
+  const hasExt = cleanName.includes('.');
+  const safeFilename = hasExt ? cleanName : `${cleanName}.pdf`;
   const params = new URLSearchParams({ 
     key: filePath, 
     filename: safeFilename 
@@ -125,8 +128,9 @@ export function getNoteViewUrl(filePath: string, fileName?: string) {
   if (filePath.startsWith('blob:') || filePath.startsWith('data:')) {
     return filePath;
   }
-  const cleanName = (fileName || filePath.split('/').pop() || 'clasy-note.pdf').replace(/[/\\?%*:|"<>]/g, '-');
-  const safeFilename = cleanName.toLowerCase().endsWith('.pdf') ? cleanName : `${cleanName}.pdf`;
+  const cleanName = (fileName || filePath.split('/').pop() || 'clasy-document.pdf').replace(/[/\\?%*:|"<>]/g, '-');
+  const hasExt = cleanName.includes('.');
+  const safeFilename = hasExt ? cleanName : `${cleanName}.pdf`;
   const params = new URLSearchParams({ 
     key: filePath, 
     filename: safeFilename,

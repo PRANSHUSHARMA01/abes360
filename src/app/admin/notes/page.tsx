@@ -108,7 +108,8 @@ export default function AdminNotesPage() {
         unit,
         title: title.trim(),
         file_path: key,
-        description: '',
+        description: unit === 0 ? '[PRACTICE] Practice questions / PYQ' : '',
+        is_practice: unit === 0,
       });
 
       setIsModalOpen(false);
@@ -298,7 +299,7 @@ export default function AdminNotesPage() {
               </div>
 
               <div>
-                <label className="apple-label">Unit</label>
+                <label className="apple-label">Unit / Section</label>
                 <select
                   value={unit}
                   onChange={(e) => {
@@ -307,6 +308,7 @@ export default function AdminNotesPage() {
                   }}
                   className="apple-select w-full"
                 >
+                  <option value={0}>📌 Practice Questions / PYQs (Pinned Chapter)</option>
                   {UNITS.map((u) => (
                     <option key={u} value={u}>
                       Unit {u}
@@ -316,31 +318,31 @@ export default function AdminNotesPage() {
               </div>
 
               <div>
-                <label className="apple-label">Unit / Note title</label>
+                <label className="apple-label">Title</label>
                 <input 
                   required 
                   value={title} 
                   onChange={(e) => setTitle(e.target.value)} 
-                  placeholder="e.g. Unit 1: Programming Paradigms & C++ Basics" 
+                  placeholder={unit === 0 ? "e.g. 2024 Sessional Exam PYQ" : "e.g. Unit 1: Programming Paradigms & C++ Basics"} 
                   className="apple-text-input" 
                 />
               </div>
 
               <div>
-                <label className="apple-label">Attach PDF File <span className="font-normal text-zinc-400">(.pdf)</span></label>
+                <label className="apple-label">Attach File <span className="font-normal text-zinc-400">(PDF or Images)</span></label>
                 <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4 hover:bg-blue-50/40">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
                     <Upload className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-zinc-800">
-                      {fileObject?.name || 'Choose PDF file from device'}
+                      {fileObject?.name || 'Choose PDF or image from device'}
                     </p>
-                    <p className="text-xs text-zinc-400">PDF will be displayed directly in the in-app viewer</p>
+                    <p className="text-xs text-zinc-400">Supports PDF, PNG, JPG, JPEG, WEBP (Up to 50MB)</p>
                   </div>
                   <input 
                     type="file" 
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.png,.jpg,.jpeg" 
+                    accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.doc,.docx,.ppt,.pptx,.txt" 
                     className="sr-only" 
                     onChange={(e) => setFileObject(e.target.files?.[0] || null)} 
                   />
@@ -350,11 +352,11 @@ export default function AdminNotesPage() {
               <button disabled={uploading} className="apple-primary-button w-full justify-center disabled:opacity-60">
                 {uploading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Uploading PDF...
+                    <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4" /> Save & Upload PDF
+                    <Upload className="h-4 w-4" /> Save & Upload Document
                   </>
                 )}
               </button>

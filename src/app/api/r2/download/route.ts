@@ -83,18 +83,20 @@ export async function GET(request: Request) {
     }
 
     let finalBuffer: Uint8Array | ArrayBuffer = rawBuffer;
+    const ext = filename.toLowerCase().split('.').pop() || '';
+    const isPdf = ext === 'pdf' || contentType.includes('pdf');
 
-    // Apply Clasy watermark when downloading (not inline viewing)
-    if (!inline) {
+    // Apply Clasy watermark only when downloading a PDF (not inline viewing and not images)
+    if (!inline && isPdf) {
       finalBuffer = await applyClasyWatermark(rawBuffer);
     }
 
-    const safeFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+    const safeFilename = filename;
 
     return new Response(finalBuffer as any, {
       status: 200,
       headers: {
-        'Content-Type': contentType.includes('pdf') ? 'application/pdf' : contentType,
+        'Content-Type': isPdf ? 'application/pdf' : contentType,
         'Content-Disposition': inline 
           ? `inline; filename="${encodeURIComponent(safeFilename)}"`
           : `attachment; filename="${encodeURIComponent(safeFilename)}"`,

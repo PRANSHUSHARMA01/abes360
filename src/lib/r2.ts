@@ -130,10 +130,13 @@ export function validateNoteFile(fileName: string, contentType: string, size: nu
     'text/plain',
     'image/png',
     'image/jpeg',
+    'image/jpg',
+    'image/webp',
+    'image/gif',
   ]);
 
   const ext = fileName.toLowerCase().split('.').pop() || '';
-  const allowedExt = new Set(['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'png', 'jpg', 'jpeg']);
+  const allowedExt = new Set(['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'png', 'jpg', 'jpeg', 'webp', 'gif']);
 
   if (!allowedTypes.has(contentType) || !allowedExt.has(ext)) {
     throw new Error('Unsupported file type. Use PDF, DOC/DOCX, PPT/PPTX, TXT, PNG or JPG.');

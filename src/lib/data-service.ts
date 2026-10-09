@@ -219,6 +219,7 @@ export const DataService = {
 
     return allNotes.map((note) => ({
       ...note,
+      is_practice: Boolean(note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]')),
       subject: note.subject || subjects.find((s) => s.id === note.subject_id),
       branch: note.branch || branches.find((b) => b.id === note.branch_id),
     }));

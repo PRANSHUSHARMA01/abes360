@@ -42,7 +42,7 @@ export interface Note {
   branch_id: string;
   subject_id: string;
   semester: number;
-  unit?: number; // 1 to 5
+  unit?: number; // 1 to 5, or 0 for practice
   title: string;
   file_path: string;
   description?: string;
@@ -51,6 +51,8 @@ export interface Note {
   created_at: string;
   subject?: Subject;
   branch?: Branch;
+  is_practice?: boolean;
+  file_type?: string;
 }
 
 export interface UserPreferences {
