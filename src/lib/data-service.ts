@@ -50,6 +50,18 @@ function generateUUID(): string {
   });
 }
 
+const ALLOWED_SUBJECT_CODES = new Set([
+  '25CS301',
+  '25CS302',
+  '25CS303',
+  '25OE3XX',
+  '25HU302',
+  '25HU301',
+  '25AS301',
+  '25VA301',
+  '25VA302',
+]);
+
 export const DataService = {
   // BRANCHES
   async getBranches(): Promise<Branch[]> {
@@ -69,16 +81,19 @@ export const DataService = {
       if (branchId) query = query.eq('branch_id', branchId);
       if (semester) query = query.eq('semester', semester);
       const { data, error } = await query;
-      if (!error && data && data.length > 0) return data;
+      if (!error && data && data.length > 0) {
+        return (data as Subject[]).filter((s) => ALLOWED_SUBJECT_CODES.has(s.code));
+      }
     }
     let subjects = getLocalItem<Subject[]>(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
-    if (!subjects.some((s) => s.code === '25HU301' || s.code === '25AS301') || subjects.length < INITIAL_SUBJECTS.length) {
+    const hasUnwanted = subjects.some((s) => !ALLOWED_SUBJECT_CODES.has(s.code));
+    if (hasUnwanted || subjects.length !== INITIAL_SUBJECTS.length) {
       subjects = INITIAL_SUBJECTS;
       setLocalItem(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
     }
     if (branchId) subjects = subjects.filter((s) => s.branch_id === branchId);
     if (semester) subjects = subjects.filter((s) => s.semester === semester);
-    return subjects;
+    return subjects.filter((s) => ALLOWED_SUBJECT_CODES.has(s.code));
   },
 
   // TEACHERS

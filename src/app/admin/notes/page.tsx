@@ -340,7 +340,7 @@ export default function AdminNotesPage() {
             </div>
             <form onSubmit={handleUpload} className="mt-6 space-y-4">
               <div>
-                <label className="apple-label">Select subject (16 Subjects)</label>
+                <label className="apple-label">Select Subject</label>
                 <select 
                   required 
                   value={subjectId} 
