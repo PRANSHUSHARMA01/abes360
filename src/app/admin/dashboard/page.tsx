@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
-import { DataService } from '@/lib/data-service';
+import { DataService, getSubjectShortform } from '@/lib/data-service';
 import { Branch, Subject, Teacher, TimetableSlot, SessionType } from '@/lib/types';
 import { formatTime12 } from '@/lib/time-utils';
 import { Plus, Trash2, Edit3, LogOut, FileText, Calendar, ShieldCheck, Check, X } from 'lucide-react';
@@ -235,7 +235,7 @@ export default function AdminDashboardPage() {
                         {formatTime12(slot.start_time)} - {formatTime12(slot.end_time)}
                       </td>
                       <td className="p-4 text-white font-medium">
-                        {slot.subject?.name} <span className="font-mono text-supabase-muted text-[10px]">({slot.subject?.code})</span>
+                        {getSubjectShortform(slot.subject)}
                       </td>
                       <td className="p-4 text-supabase-subtext">{slot.teacher?.name}</td>
                       <td className="p-4">
@@ -342,7 +342,7 @@ export default function AdminDashboardPage() {
                   className="w-full px-3 py-2 rounded-lg bg-supabase-card border border-supabase-border text-white"
                 >
                   {subjects.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                    <option key={s.id} value={s.id}>{getSubjectShortform(s)}</option>
                   ))}
                 </select>
               </div>

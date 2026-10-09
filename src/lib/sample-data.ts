@@ -35,15 +35,15 @@ export const INITIAL_TEACHERS: Teacher[] = [
 // Helper to create the list of 9 semester 3 academic subjects for a given branch
 function createSemester3Subjects(branchId: string, prefix: string): Subject[] {
   return [
-    { id: `${prefix}-301`, name: 'Object Oriented Programming Paradigm', code: '25CS301', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-302`, name: 'Operating System', code: '25CS302', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-303`, name: 'Advanced Data Structure', code: '25CS303', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-oe3xx`, name: 'Discrete Structure & Theory of Logic', code: '25OE3XX', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-hu302`, name: 'Technical Communication', code: '25HU302', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-hu301`, name: 'Universal Human Values', code: '25HU301', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-as301`, name: 'Applied Maths for Computing Applications', code: '25AS301', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-va301`, name: 'Data Visualization using Python', code: '25VA301', branch_id: branchId, semester: 3 },
-    { id: `${prefix}-va302`, name: 'Fundamentals of Cloud Computing', code: '25VA302', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-301`, name: 'OOPS', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-302`, name: 'OS', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-303`, name: 'ADS', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-oe3xx`, name: 'DSTL', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-hu302`, name: 'Technical Communication', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-hu301`, name: 'Human Values', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-as301`, name: 'Applied Maths', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-va301`, name: 'Python', code: '', branch_id: branchId, semester: 3 },
+    { id: `${prefix}-va302`, name: 'Cloud', code: '', branch_id: branchId, semester: 3 },
   ];
 }
 

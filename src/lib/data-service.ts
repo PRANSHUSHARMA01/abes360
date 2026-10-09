@@ -50,17 +50,40 @@ function generateUUID(): string {
   });
 }
 
-const ALLOWED_SUBJECT_CODES = new Set([
-  '25CS301',
-  '25CS302',
-  '25CS303',
-  '25OE3XX',
-  '25HU302',
-  '25HU301',
-  '25AS301',
-  '25VA301',
-  '25VA302',
-]);
+export function getSubjectShortform(subj?: Partial<Subject> | string | null): string {
+  if (!subj) return '—';
+  if (typeof subj === 'string') {
+    const s = subj.trim().toLowerCase();
+    if (s === '25cs301' || s.endsWith('-301') || (s.includes('301') && !s.includes('hu') && !s.includes('as') && !s.includes('va'))) return 'OOPS';
+    if (s === '25cs302' || s.endsWith('-302') || (s.includes('302') && !s.includes('hu') && !s.includes('va'))) return 'OS';
+    if (s === '25cs303' || s.endsWith('-303') || s.includes('303')) return 'ADS';
+    if (s === '25oe3xx' || s.includes('oe3xx') || s.includes('dstl') || s.includes('discrete') || s.includes('logic')) return 'DSTL';
+    if (s === '25hu302' || s.includes('hu302') || s.includes('tc') || s.includes('technical') || s.includes('communication')) return 'Technical Communication';
+    if (s === '25hu301' || s.includes('hu301') || s.includes('uhv') || s.includes('human') || s.includes('values')) return 'Human Values';
+    if (s === '25as301' || s.includes('as301') || s.includes('math')) return 'Applied Maths';
+    if (s === '25va301' || s.includes('va301') || s.includes('python')) return 'Python';
+    if (s === '25va302' || s.includes('va302') || s.includes('cloud')) return 'Cloud';
+    return subj;
+  }
+  
+  const id = (subj.id || '').toLowerCase();
+  const code = (subj.code || '').toLowerCase();
+  const name = (subj.name || '').toLowerCase();
+
+  if (code === '25cs301' || id.endsWith('-301') || name.includes('object') || name.includes('oops') || name === 'oops') return 'OOPS';
+  if (code === '25cs302' || id.endsWith('-302') || name.includes('operating') || name.includes('os') || name === 'os') return 'OS';
+  if (code === '25cs303' || id.endsWith('-303') || name.includes('data structure') || name.includes('ads') || name === 'ads') return 'ADS';
+  if (code === '25oe3xx' || id.includes('oe3xx') || name.includes('discrete') || name.includes('dstl') || name.includes('logic') || name === 'dstl') return 'DSTL';
+  if (code === '25hu302' || id.includes('hu302') || name.includes('technical communication') || name.includes('communication') || name.includes('tc')) return 'Technical Communication';
+  if (code === '25hu301' || id.includes('hu301') || name.includes('human values') || name.includes('uhv') || name === 'human values') return 'Human Values';
+  if (code === '25as301' || id.includes('as301') || name.includes('math') || name.includes('applied maths')) return 'Applied Maths';
+  if (code === '25va301' || id.includes('va301') || name.includes('python')) return 'Python';
+  if (code === '25va302' || id.includes('va302') || name.includes('cloud')) return 'Cloud';
+
+  return subj.name || subj.code || '—';
+}
+
+const ALLOWED_SUBJECT_PREFIXES = ['-301', '-302', '-303', '-oe3xx', '-hu302', '-hu301', '-as301', '-va301', '-va302'];
 
 export const DataService = {
   // BRANCHES
@@ -82,18 +105,21 @@ export const DataService = {
       if (semester) query = query.eq('semester', semester);
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        return (data as Subject[]).filter((s) => ALLOWED_SUBJECT_CODES.has(s.code));
+        return (data as Subject[])
+          .filter((s) => ALLOWED_SUBJECT_PREFIXES.some((p) => s.id.endsWith(p)))
+          .map((s) => ({ ...s, name: getSubjectShortform(s), code: '' }));
       }
     }
     let subjects = getLocalItem<Subject[]>(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
-    const hasUnwanted = subjects.some((s) => !ALLOWED_SUBJECT_CODES.has(s.code));
-    if (hasUnwanted || subjects.length !== INITIAL_SUBJECTS.length) {
+    const hasUnwanted = subjects.some((s) => !ALLOWED_SUBJECT_PREFIXES.some((p) => s.id.endsWith(p)));
+    const hasCodes = subjects.some((s) => s.code && s.code.length > 0);
+    if (hasUnwanted || hasCodes || subjects.length !== INITIAL_SUBJECTS.length) {
       subjects = INITIAL_SUBJECTS;
       setLocalItem(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS);
     }
     if (branchId) subjects = subjects.filter((s) => s.branch_id === branchId);
     if (semester) subjects = subjects.filter((s) => s.semester === semester);
-    return subjects.filter((s) => ALLOWED_SUBJECT_CODES.has(s.code));
+    return subjects.map((s) => ({ ...s, name: getSubjectShortform(s), code: '' }));
   },
 
   // TEACHERS

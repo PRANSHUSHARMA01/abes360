@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Note, Branch, Subject } from '@/lib/types';
-import { DataService } from '@/lib/data-service';
+import { DataService, getSubjectShortform } from '@/lib/data-service';
 import { getNoteDownloadUrl, getNoteViewUrl } from '@/lib/r2-client';
 import { ABES_SYLLABUS } from '@/lib/syllabus-data';
 import { 
@@ -168,7 +168,7 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
           >
             {subjects.map((sub) => (
               <option key={sub.id} value={sub.id}>
-                {sub.code ? `[${sub.code}] ` : ''}{sub.name}
+                {getSubjectShortform(sub)}
               </option>
             ))}
           </select>
@@ -221,7 +221,7 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
             <div>
               <span className="apple-eyebrow">{selectedBranchCode} · Sem {selectedSemester}</span>
               <h2 className="text-xl font-bold tracking-tight text-zinc-950">
-                {currentSubjectObj.code ? `[${currentSubjectObj.code}] ` : ''}{currentSubjectObj.name}
+                {getSubjectShortform(currentSubjectObj)}
               </h2>
             </div>
             {isAdmin && (
@@ -340,7 +340,12 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
               const unitTheoryNotes = filteredNotes.filter((n) => !n.is_practice && (n.unit || 1) === unitNumber);
               const unitPracticeNotes = filteredNotes.filter((n) => n.is_practice && (n.unit || 1) === unitNumber);
 
-              const syllabusSub = ABES_SYLLABUS.find((s) => s.code === currentSubjectObj.code || s.name === currentSubjectObj.name);
+              const syllabusSub = ABES_SYLLABUS.find(
+                (s) =>
+                  s.code === currentSubjectObj.code ||
+                  s.name === currentSubjectObj.name ||
+                  getSubjectShortform(s) === getSubjectShortform(currentSubjectObj)
+              );
               const unitObj = syllabusSub?.units?.find((u) => u.unitNumber === unitNumber);
               const unitTitle = unitObj?.unitName ? `Unit ${unitNumber} – ${unitObj.unitName}` : `Unit ${unitNumber}`;
 

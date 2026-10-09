@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Note } from '@/lib/types';
 import { getNoteDownloadUrl, getNoteViewUrl } from '@/lib/r2-client';
+import { getSubjectShortform } from '@/lib/data-service';
 import { 
   X, 
   Maximize2, 
@@ -107,7 +108,7 @@ export const NoteViewerModal: React.FC<NoteViewerModalProps> = ({ note, isOpen, 
                   Unit {note.unit || 1}
                 </span>
                 <span className="truncate text-[11px] sm:text-xs text-zinc-500 font-medium">
-                  {note.subject?.code ? `[${note.subject.code}] ` : ''}{note.subject?.name || 'Subject Notes'}
+                  {getSubjectShortform(note.subject || note.subject_id)}
                 </span>
               </div>
               <h2 className="mt-0.5 truncate text-sm sm:text-base font-bold text-zinc-950">
@@ -242,7 +243,7 @@ export const NoteViewerModal: React.FC<NoteViewerModalProps> = ({ note, isOpen, 
               </h2>
 
               <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                {note.subject?.code || 'CSE'} · {note.subject?.name || 'Subject'}
+                {getSubjectShortform(note.subject || note.subject_id)}
               </p>
 
               <div className="mt-5 rounded-xl bg-zinc-50 p-4 border border-zinc-100 text-xs text-zinc-600 leading-relaxed">

@@ -21,7 +21,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
-import { DataService } from '@/lib/data-service';
+import { DataService, getSubjectShortform } from '@/lib/data-service';
 import { Branch, Note, Subject } from '@/lib/types';
 import { deleteFileFromR2, getNoteDownloadUrl, getNoteViewUrl, uploadFileToR2 } from '@/lib/r2-client';
 import { NoteViewerModal } from '@/components/NoteViewerModal';
@@ -253,8 +253,8 @@ export default function AdminNotesPage() {
                     </div>
                   </div>
 
-                  <span className="text-sm text-zinc-600 truncate">
-                    {note.subject?.code || note.subject?.name}
+                  <span className="text-sm font-semibold text-zinc-800 truncate">
+                    {getSubjectShortform(note.subject || note.subject_id)}
                   </span>
 
                   <div>
@@ -350,7 +350,7 @@ export default function AdminNotesPage() {
                   <option value="">Select a subject...</option>
                   {subjects.map((subject) => (
                     <option key={subject.id} value={subject.id}>
-                      {subject.name} {subject.code ? `(${subject.code})` : ''}
+                      {getSubjectShortform(subject)}
                     </option>
                   ))}
                 </select>
@@ -452,7 +452,7 @@ export default function AdminNotesPage() {
               <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Note to move</p>
               <p className="mt-1 text-sm font-bold text-zinc-900">{transferringNote.title}</p>
               <p className="mt-0.5 text-xs text-zinc-500">
-                Current: {transferringNote.is_practice ? `Unit ${transferringNote.unit || 1} Practice` : `Unit ${transferringNote.unit || 1} Theory`} · {transferringNote.subject?.name || 'Current Subject'}
+                Current: {transferringNote.is_practice ? `Unit ${transferringNote.unit || 1} Practice` : `Unit ${transferringNote.unit || 1} Theory`} · {getSubjectShortform(transferringNote.subject || transferringNote.subject_id)}
               </p>
             </div>
 
@@ -496,7 +496,7 @@ export default function AdminNotesPage() {
                 >
                   {subjects.map((sub) => (
                     <option key={sub.id} value={sub.id}>
-                      {sub.code ? `[${sub.code}] ` : ''}{sub.name}
+                      {getSubjectShortform(sub)}
                     </option>
                   ))}
                 </select>
