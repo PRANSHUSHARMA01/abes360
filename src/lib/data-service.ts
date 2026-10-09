@@ -304,6 +304,51 @@ export const DataService = {
     return newNote;
   },
 
+  async updateNote(id: string, updates: Partial<Note>): Promise<void> {
+    if (isSupabaseConfigured) {
+      try {
+        const updatePayload: Record<string, any> = {};
+        if (updates.title !== undefined) updatePayload.title = updates.title;
+        if (updates.subject_id !== undefined) updatePayload.subject_id = updates.subject_id;
+        if (updates.branch_id !== undefined) updatePayload.branch_id = updates.branch_id;
+        if (updates.semester !== undefined) updatePayload.semester = updates.semester;
+        if (updates.file_path !== undefined) updatePayload.file_path = updates.file_path;
+        if (updates.description !== undefined) updatePayload.description = updates.description;
+        
+        if (updates.unit !== undefined || updates.is_practice !== undefined) {
+          const isPractice = updates.is_practice || updates.unit === 0;
+          updatePayload.unit = isPractice ? 1 : (updates.unit && updates.unit >= 1 && updates.unit <= 5 ? updates.unit : 1);
+          if (isPractice) {
+            updatePayload.description = updatePayload.description 
+              ? (updatePayload.description.includes('[PRACTICE]') ? updatePayload.description : `[PRACTICE] ${updatePayload.description}`)
+              : '[PRACTICE] Practice questions / PYQ';
+          }
+        }
+
+        await supabase.from('notes').update(updatePayload).eq('id', id);
+      } catch (err) {
+        console.warn('Supabase updateNote error:', err);
+      }
+    }
+
+    const currentNotes = getLocalItem<Note[]>(STORAGE_KEYS.NOTES, INITIAL_NOTES);
+    const updated = currentNotes.map((n) => {
+      if (n.id === id) {
+        const isPractice = updates.is_practice !== undefined 
+          ? updates.is_practice 
+          : (updates.unit === 0 ? true : n.is_practice);
+        return {
+          ...n,
+          ...updates,
+          is_practice: isPractice,
+        };
+      }
+      return n;
+    });
+    setLocalItem(STORAGE_KEYS.NOTES, updated);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('storage'));
+  },
+
   async deleteNote(id: string): Promise<void> {
     if (isSupabaseConfigured) {
       try {

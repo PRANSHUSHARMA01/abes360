@@ -15,7 +15,8 @@ import {
   BookOpen, 
   Eye, 
   Layers,
-  ExternalLink
+  ExternalLink,
+  ArrowRightLeft
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { DataService } from '@/lib/data-service';
@@ -39,6 +40,12 @@ export default function AdminNotesPage() {
   const [unit, setUnit] = useState<number>(1);
   const [fileObject, setFileObject] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  // Transfer Note Modal State
+  const [transferringNote, setTransferringNote] = useState<Note | null>(null);
+  const [transferTargetUnit, setTransferTargetUnit] = useState<number>(1);
+  const [transferTargetSubjectId, setTransferTargetSubjectId] = useState<string>('');
+  const [isTransferring, setIsTransferring] = useState(false);
 
   // In-app note viewer state
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
@@ -122,6 +129,35 @@ export default function AdminNotesPage() {
     }
   };
 
+  const openTransferModal = (note: Note) => {
+    setTransferringNote(note);
+    setTransferTargetUnit(note.is_practice || note.unit === 0 ? 0 : (note.unit || 1));
+    setTransferTargetSubjectId(note.subject_id || subjects[0]?.id || '');
+  };
+
+  const handleTransferNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!transferringNote) return;
+
+    setIsTransferring(true);
+    try {
+      const isPractice = transferTargetUnit === 0;
+      await DataService.updateNote(transferringNote.id, {
+        subject_id: transferTargetSubjectId || transferringNote.subject_id,
+        unit: transferTargetUnit,
+        is_practice: isPractice,
+        description: isPractice ? '[PRACTICE] Practice questions / PYQ' : '',
+      });
+
+      setTransferringNote(null);
+      await loadData();
+    } catch (err: any) {
+      alert(err?.message || 'Could not transfer note.');
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
   const handleDelete = async (note: Note) => {
     if (!confirm(`Delete “${note.title}”?`)) return;
     try {
@@ -149,7 +185,7 @@ export default function AdminNotesPage() {
             <p className="apple-eyebrow">Clasy admin</p>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">Notes Manager</h1>
             <p className="mt-1 text-sm text-zinc-500">
-              Manage 5-unit structured notes and preview them directly inside the app.
+              Manage 5-unit structured notes and transfer materials across units in real time.
             </p>
           </div>
           <button onClick={() => setIsModalOpen(true)} className="apple-primary-button">
@@ -182,7 +218,7 @@ export default function AdminNotesPage() {
         </div>
 
         <div className="mt-5 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-          <div className="hidden grid-cols-[2fr_1.2fr_100px_100px_120px] gap-4 border-b border-zinc-100 bg-zinc-50 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 md:grid">
+          <div className="hidden grid-cols-[2fr_1.2fr_100px_100px_140px] gap-4 border-b border-zinc-100 bg-zinc-50 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 md:grid">
             <span>Unit Note</span>
             <span>Subject</span>
             <span>Unit</span>
@@ -197,7 +233,7 @@ export default function AdminNotesPage() {
               return (
                 <div 
                   key={note.id} 
-                  className="grid gap-3 border-b border-zinc-100 px-5 py-4 last:border-0 md:grid-cols-[2fr_1.2fr_100px_100px_120px] md:items-center md:gap-4"
+                  className="grid gap-3 border-b border-zinc-100 px-5 py-4 last:border-0 md:grid-cols-[2fr_1.2fr_100px_100px_140px] md:items-center md:gap-4"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -228,6 +264,14 @@ export default function AdminNotesPage() {
                   <span className="text-xs text-zinc-400">{new Date(note.created_at).toLocaleDateString()}</span>
 
                   <div className="flex items-center justify-start gap-1.5 md:justify-end">
+                    <button
+                      onClick={() => openTransferModal(note)}
+                      className="apple-icon-button text-indigo-600 hover:bg-indigo-50"
+                      title="Transfer / Move to another unit or subject"
+                    >
+                      <ArrowRightLeft className="h-4 w-4" />
+                    </button>
+
                     {note.file_path && (
                       <a
                         href={getNoteViewUrl(note.file_path, fileName)}
@@ -366,6 +410,89 @@ export default function AdminNotesPage() {
                   </>
                 )}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer / Move Note Modal */}
+      {transferringNote && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="w-full max-w-lg rounded-t-[28px] bg-white p-6 shadow-2xl sm:rounded-[28px] sm:p-7 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <div>
+                <p className="apple-eyebrow">Real-Time Transfer</p>
+                <h2 className="mt-1 text-xl font-semibold text-zinc-950">Move Note to Another Unit</h2>
+              </div>
+              <button onClick={() => setTransferringNote(null)} className="apple-icon-button">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-zinc-50 p-4 border border-zinc-200">
+              <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Note to move</p>
+              <p className="mt-1 text-sm font-bold text-zinc-900">{transferringNote.title}</p>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Current: {transferringNote.is_practice || transferringNote.unit === 0 ? '📌 Practice Chapter' : `Unit ${transferringNote.unit || 1}`} · {transferringNote.subject?.name || 'Current Subject'}
+              </p>
+            </div>
+
+            <form onSubmit={handleTransferNote} className="mt-5 space-y-4">
+              <div>
+                <label className="apple-label">Target Unit / Section</label>
+                <select
+                  value={transferTargetUnit}
+                  onChange={(e) => setTransferTargetUnit(Number(e.target.value))}
+                  className="apple-select w-full font-semibold text-zinc-900"
+                >
+                  <option value={0}>📌 Practice Questions / PYQs (Pinned Chapter)</option>
+                  <option value={1}>Unit 1</option>
+                  <option value={2}>Unit 2</option>
+                  <option value={3}>Unit 3</option>
+                  <option value={4}>Unit 4</option>
+                  <option value={5}>Unit 5</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="apple-label">Target Subject (Optional)</label>
+                <select
+                  value={transferTargetSubjectId}
+                  onChange={(e) => setTransferTargetSubjectId(e.target.value)}
+                  className="apple-select w-full font-medium text-zinc-900"
+                >
+                  {subjects.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.code ? `[${sub.code}] ` : ''}{sub.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-zinc-100">
+                <button
+                  type="button"
+                  onClick={() => setTransferringNote(null)}
+                  className="apple-secondary-button text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isTransferring}
+                  className="apple-primary-button text-xs bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {isTransferring ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Moving...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRightLeft className="h-4 w-4" /> Move Note
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
           </div>
         </div>
