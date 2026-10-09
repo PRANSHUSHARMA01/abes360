@@ -62,8 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenOnboarding }) => {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/timetable', label: 'Timetable', icon: CalendarDays },
-    { href: '/notes', label: 'Notes', icon: FileText },
-    { href: '/planner', label: 'Study Planner', icon: BookOpen },
+    { href: '/notes', label: 'Notes & Syllabus', icon: FileText },
     { href: '/admin/dashboard', label: 'Admin', icon: Lock },
   ];
 

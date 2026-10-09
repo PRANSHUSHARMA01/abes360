@@ -198,19 +198,29 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
             <button
               onClick={() => setIsSyllabusModalOpen(true)}
               className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
             >
-              <BookOpen className="h-3.5 w-3.5" /> View Syllabus
+              <BookOpen className="h-3.5 w-3.5" /> View Syllabus &amp; Units
             </button>
-            <Link
-              href="/planner"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+            <a
+              href="/syllabus/ABES_BTech_2nd_Year_CSE_Syllabus_2026-27.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
             >
-              <Sparkles className="h-3.5 w-3.5 text-emerald-600" /> Study Planner
-            </Link>
+              <FileText className="h-3.5 w-3.5 text-emerald-700" /> View PDF
+            </a>
+            <a
+              href="/syllabus/ABES_BTech_2nd_Year_CSE_Syllabus_2026-27.pdf"
+              download="ABES_BTech_2nd_Year_CSE_Syllabus_2026-27.pdf"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+              title="Download official 2nd year syllabus PDF"
+            >
+              <Download className="h-3.5 w-3.5 text-zinc-500" /> Download PDF
+            </a>
           </div>
         </div>
 

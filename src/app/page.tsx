@@ -92,16 +92,16 @@ export default function HomePage() {
               </span>
             </Link>
 
-            <Link href="/planner" className="apple-card group p-6 transition hover:-translate-y-0.5 hover:shadow-lg sm:col-span-2 lg:col-span-1">
+            <Link href="/notes" className="apple-card group p-6 transition hover:-translate-y-0.5 hover:shadow-lg sm:col-span-2 lg:col-span-1">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                 <BookOpen className="h-6 w-6" />
               </div>
-              <h2 className="mt-5 text-xl font-bold tracking-tight text-zinc-950">Study Planner &amp; Syllabus</h2>
+              <h2 className="mt-5 text-xl font-bold tracking-tight text-zinc-950">2nd Year Syllabus &amp; Schemes</h2>
               <p className="mt-2 text-sm leading-6 text-zinc-500">
-                Official ABES 2026–27 5-unit syllabus, topic completion tracker, exam preparation &amp; study sessions.
+                Official ABES / AKTU 2026–27 2nd Year (Semester 3 &amp; 4) 5-unit curriculum, evaluation schemes &amp; PDF document.
               </p>
               <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
-                Open study planner <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                View 2nd year syllabus <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
               </span>
             </Link>
           </section>
