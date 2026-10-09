@@ -15,11 +15,13 @@ import {
   Sparkles, 
   ExternalLink, 
   Lock,
-  BookOpen,
+  BookOpen, 
   Image as ImageIcon,
   HelpCircle,
-  Maximize2
+  Maximize2,
+  GraduationCap
 } from 'lucide-react';
+import { SyllabusModal } from './SyllabusModal';
 
 interface NotesCatalogProps {
   initialBranchId?: string;
@@ -44,6 +46,7 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
   const [selectedUnit, setSelectedUnit] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSyllabusModalOpen, setIsSyllabusModalOpen] = useState(false);
 
   // Lightbox State for Image Viewing
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string; downloadUrl: string } | null>(null);
@@ -172,6 +175,43 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Small 2nd Year Syllabus Card */}
+        <div className="mt-5 rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50/70 via-teal-50/30 to-white p-3.5 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100/90 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                  <GraduationCap className="h-3 w-3" /> 2nd Year Syllabus
+                </span>
+                <span className="text-[11px] text-zinc-500 font-medium">
+                  {selectedBranchCode} · Semester {selectedSemester}
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs sm:text-sm font-bold text-zinc-900 truncate">
+                {getSubjectShortform(currentSubjectObj)} — Official 5-Unit Detailed Syllabus & Scheme
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <button
+              onClick={() => setIsSyllabusModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            >
+              <BookOpen className="h-3.5 w-3.5" /> View Syllabus
+            </button>
+            <Link
+              href="/planner"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-emerald-600" /> Study Planner
+            </Link>
+          </div>
         </div>
 
         {/* Unit Tabs Navigation */}
@@ -652,6 +692,15 @@ export const NotesCatalog: React.FC<NotesCatalogProps> = ({ initialBranchId = 'b
           </div>
         </div>
       )}
+
+      {/* 2nd Year Official Syllabus Modal */}
+      <SyllabusModal
+        isOpen={isSyllabusModalOpen}
+        onClose={() => setIsSyllabusModalOpen(false)}
+        initialSemester={selectedSemester}
+        initialSubjectId={selectedSubject}
+        branchCode={selectedBranchCode}
+      />
     </div>
   );
 };
