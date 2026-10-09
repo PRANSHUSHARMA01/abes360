@@ -16,7 +16,9 @@ import {
   Eye, 
   Layers,
   ExternalLink,
-  ArrowRightLeft
+  ArrowRightLeft,
+  HelpCircle,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { DataService } from '@/lib/data-service';
@@ -38,6 +40,7 @@ export default function AdminNotesPage() {
   const [title, setTitle] = useState('');
   const [subjectId, setSubjectId] = useState('');
   const [unit, setUnit] = useState<number>(1);
+  const [isPractice, setIsPractice] = useState<boolean>(false);
   const [fileObject, setFileObject] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -45,6 +48,7 @@ export default function AdminNotesPage() {
   const [transferringNote, setTransferringNote] = useState<Note | null>(null);
   const [transferTargetUnit, setTransferTargetUnit] = useState<number>(1);
   const [transferTargetSubjectId, setTransferTargetSubjectId] = useState<string>('');
+  const [transferIsPractice, setTransferIsPractice] = useState<boolean>(false);
   const [isTransferring, setIsTransferring] = useState(false);
 
   // In-app note viewer state
@@ -80,6 +84,7 @@ export default function AdminNotesPage() {
   const resetForm = () => {
     setTitle('');
     setUnit(1);
+    setIsPractice(false);
     setFileObject(null);
     setSubjectId(subjects[0]?.id || '');
   };
@@ -115,13 +120,13 @@ export default function AdminNotesPage() {
         unit,
         title: title.trim(),
         file_path: key,
-        description: unit === 0 ? '[PRACTICE] Practice questions / PYQ' : '',
-        is_practice: unit === 0,
+        description: isPractice ? `[PRACTICE] Unit ${unit} practice question` : '',
+        is_practice: isPractice,
       });
 
       setIsModalOpen(false);
       resetForm();
-      loadData();
+      await loadData();
     } catch (err: any) {
       alert(err?.message || 'Could not upload note.');
     } finally {
@@ -131,8 +136,9 @@ export default function AdminNotesPage() {
 
   const openTransferModal = (note: Note) => {
     setTransferringNote(note);
-    setTransferTargetUnit(note.is_practice || note.unit === 0 ? 0 : (note.unit || 1));
+    setTransferTargetUnit(note.unit || 1);
     setTransferTargetSubjectId(note.subject_id || subjects[0]?.id || '');
+    setTransferIsPractice(Boolean(note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]')));
   };
 
   const handleTransferNote = async (e: React.FormEvent) => {
@@ -141,12 +147,11 @@ export default function AdminNotesPage() {
 
     setIsTransferring(true);
     try {
-      const isPractice = transferTargetUnit === 0;
       await DataService.updateNote(transferringNote.id, {
         subject_id: transferTargetSubjectId || transferringNote.subject_id,
         unit: transferTargetUnit,
-        is_practice: isPractice,
-        description: isPractice ? '[PRACTICE] Practice questions / PYQ' : '',
+        is_practice: transferIsPractice,
+        description: transferIsPractice ? `[PRACTICE] Unit ${transferTargetUnit} practice question` : '',
       });
 
       setTransferringNote(null);
@@ -183,13 +188,13 @@ export default function AdminNotesPage() {
               <ArrowLeft className="h-4 w-4" /> Admin Dashboard
             </Link>
             <p className="apple-eyebrow">Clasy admin</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">Notes Manager</h1>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">Notes & Practice Manager</h1>
             <p className="mt-1 text-sm text-zinc-500">
               Manage 5-unit structured notes and transfer materials across units in real time.
             </p>
           </div>
           <button onClick={() => setIsModalOpen(true)} className="apple-primary-button">
-            <Plus className="h-4 w-4" /> Upload Notes
+            <Plus className="h-4 w-4" /> Upload Note or Practice
           </button>
         </div>
 
@@ -213,31 +218,34 @@ export default function AdminNotesPage() {
             </select>
           </div>
           <div className="text-sm text-zinc-500 sm:ml-auto">
-            {notes.length} note{notes.length === 1 ? '' : 's'}
+            {notes.length} document{notes.length === 1 ? '' : 's'}
           </div>
         </div>
 
         <div className="mt-5 overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-          <div className="hidden grid-cols-[2fr_1.2fr_100px_100px_140px] gap-4 border-b border-zinc-100 bg-zinc-50 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 md:grid">
-            <span>Unit Note</span>
+          <div className="hidden grid-cols-[2fr_1.2fr_130px_100px_140px] gap-4 border-b border-zinc-100 bg-zinc-50 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 md:grid">
+            <span>Title</span>
             <span>Subject</span>
-            <span>Unit</span>
+            <span>Unit & Category</span>
             <span>Added</span>
             <span className="text-right">Action</span>
           </div>
           {notes.length === 0 ? (
-            <div className="px-6 py-16 text-center text-sm text-zinc-500">No notes for this branch and semester.</div>
+            <div className="px-6 py-16 text-center text-sm text-zinc-500">No notes or practice sheets for this branch and semester.</div>
           ) : (
             notes.map((note) => {
-              const fileName = note.file_path ? (note.file_path.split('/').pop() || `${note.title}.pdf`) : 'No PDF attached';
+              const fileName = note.file_path ? (note.file_path.split('/').pop() || `${note.title}.pdf`) : 'No file attached';
+              const isPracticeNote = Boolean(note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]'));
               return (
                 <div 
                   key={note.id} 
-                  className="grid gap-3 border-b border-zinc-100 px-5 py-4 last:border-0 md:grid-cols-[2fr_1.2fr_100px_100px_140px] md:items-center md:gap-4"
+                  className="grid gap-3 border-b border-zinc-100 px-5 py-4 last:border-0 md:grid-cols-[2fr_1.2fr_130px_100px_140px] md:items-center md:gap-4"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                      <FileText className="h-4 w-4" />
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                      isPracticeNote ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-blue-600'
+                    }`}>
+                      {isPracticeNote ? <HelpCircle className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-zinc-900">{note.title}</p>
@@ -250,14 +258,14 @@ export default function AdminNotesPage() {
                   </span>
 
                   <div>
-                    <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
-                      note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]')
-                        ? 'bg-indigo-50 text-indigo-700'
-                        : 'bg-blue-50 text-blue-700'
+                    <span className={`inline-block rounded px-2.5 py-0.5 text-xs font-semibold ${
+                      isPracticeNote
+                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                        : 'bg-blue-50 text-blue-700 border border-blue-200'
                     }`}>
-                      {note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]')
-                        ? '📌 Practice'
-                        : `Unit ${note.unit || 1}`}
+                      {isPracticeNote
+                        ? (note.unit && note.unit > 0 ? `Unit ${note.unit} · Practice` : 'General · Practice')
+                        : `Unit ${note.unit || 1} · Theory`}
                     </span>
                   </div>
 
@@ -278,7 +286,7 @@ export default function AdminNotesPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="apple-icon-button text-blue-600 hover:bg-blue-50"
-                        title="Open PDF in new tab"
+                        title="Open document in new tab"
                       >
                         <BookOpen className="h-4 w-4" />
                       </a>
@@ -289,7 +297,7 @@ export default function AdminNotesPage() {
                         href={getNoteDownloadUrl(note.file_path, fileName)} 
                         download={fileName}
                         className="apple-icon-button" 
-                        title="Download with Clasy watermark"
+                        title="Download"
                       >
                         <Download className="h-4 w-4" />
                       </a>
@@ -324,7 +332,7 @@ export default function AdminNotesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="apple-eyebrow">Clasy admin</p>
-                <h2 className="mt-1 text-xl font-semibold text-zinc-950">Upload Note</h2>
+                <h2 className="mt-1 text-xl font-semibold text-zinc-950">Upload Material</h2>
               </div>
               <button onClick={() => { setIsModalOpen(false); resetForm(); }} className="apple-icon-button">
                 <X className="h-5 w-5" />
@@ -348,32 +356,43 @@ export default function AdminNotesPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="apple-label">Unit / Section</label>
-                <select
-                  value={unit}
-                  onChange={(e) => {
-                    const u = Number(e.target.value);
-                    setUnit(u);
-                  }}
-                  className="apple-select w-full"
-                >
-                  <option value={0}>📌 Practice Questions / PYQs (Pinned Chapter)</option>
-                  {UNITS.map((u) => (
-                    <option key={u} value={u}>
-                      Unit {u}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="apple-label">Target Unit</label>
+                  <select
+                    value={unit}
+                    onChange={(e) => setUnit(Number(e.target.value))}
+                    className="apple-select w-full"
+                  >
+                    <option value={0}>General / All Units</option>
+                    {UNITS.map((u) => (
+                      <option key={u} value={u}>
+                        Unit {u}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="apple-label">Material Type</label>
+                  <select
+                    value={isPractice ? 'practice' : 'theory'}
+                    onChange={(e) => setIsPractice(e.target.value === 'practice')}
+                    className="apple-select w-full font-semibold"
+                  >
+                    <option value="theory">📖 Theory Notes</option>
+                    <option value="practice">📝 Practice & PYQ</option>
+                  </select>
+                </div>
               </div>
 
               <div>
-                <label className="apple-label">Title</label>
+                <label className="apple-label">Document Title</label>
                 <input 
                   required 
                   value={title} 
                   onChange={(e) => setTitle(e.target.value)} 
-                  placeholder={unit === 0 ? "e.g. 2024 Sessional Exam PYQ" : "e.g. Unit 1: Programming Paradigms & C++ Basics"} 
+                  placeholder={isPractice ? `e.g. Unit ${unit} Practice Questions & Solutions` : `e.g. Unit ${unit}: Complete Chapter Notes`} 
                   className="apple-text-input" 
                 />
               </div>
@@ -433,25 +452,39 @@ export default function AdminNotesPage() {
               <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Note to move</p>
               <p className="mt-1 text-sm font-bold text-zinc-900">{transferringNote.title}</p>
               <p className="mt-0.5 text-xs text-zinc-500">
-                Current: {transferringNote.is_practice || transferringNote.unit === 0 ? '📌 Practice Chapter' : `Unit ${transferringNote.unit || 1}`} · {transferringNote.subject?.name || 'Current Subject'}
+                Current: {transferringNote.is_practice ? `Unit ${transferringNote.unit || 1} Practice` : `Unit ${transferringNote.unit || 1} Theory`} · {transferringNote.subject?.name || 'Current Subject'}
               </p>
             </div>
 
             <form onSubmit={handleTransferNote} className="mt-5 space-y-4">
-              <div>
-                <label className="apple-label">Target Unit / Section</label>
-                <select
-                  value={transferTargetUnit}
-                  onChange={(e) => setTransferTargetUnit(Number(e.target.value))}
-                  className="apple-select w-full font-semibold text-zinc-900"
-                >
-                  <option value={0}>📌 Practice Questions / PYQs (Pinned Chapter)</option>
-                  <option value={1}>Unit 1</option>
-                  <option value={2}>Unit 2</option>
-                  <option value={3}>Unit 3</option>
-                  <option value={4}>Unit 4</option>
-                  <option value={5}>Unit 5</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="apple-label">Target Unit</label>
+                  <select
+                    value={transferTargetUnit}
+                    onChange={(e) => setTransferTargetUnit(Number(e.target.value))}
+                    className="apple-select w-full font-semibold text-zinc-900"
+                  >
+                    <option value={0}>General / All Units</option>
+                    <option value={1}>Unit 1</option>
+                    <option value={2}>Unit 2</option>
+                    <option value={3}>Unit 3</option>
+                    <option value={4}>Unit 4</option>
+                    <option value={5}>Unit 5</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="apple-label">Target Type</label>
+                  <select
+                    value={transferIsPractice ? 'practice' : 'theory'}
+                    onChange={(e) => setTransferIsPractice(e.target.value === 'practice')}
+                    className="apple-select w-full font-semibold text-zinc-900"
+                  >
+                    <option value="theory">📖 Theory Notes</option>
+                    <option value="practice">📝 Practice & PYQ</option>
+                  </select>
+                </div>
               </div>
 
               <div>

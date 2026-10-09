@@ -258,7 +258,7 @@ export const DataService = {
     const newNote: Note = {
       ...noteData,
       id: generateUUID(),
-      unit: isPracticeNote ? 0 : (noteData.unit !== undefined ? noteData.unit : 1),
+      unit: noteData.unit !== undefined ? noteData.unit : 1,
       description: safeDescription,
       is_practice: isPracticeNote,
       created_at: new Date().toISOString(),
@@ -316,8 +316,8 @@ export const DataService = {
         if (updates.description !== undefined) updatePayload.description = updates.description;
         
         if (updates.unit !== undefined || updates.is_practice !== undefined) {
-          const isPractice = updates.is_practice || updates.unit === 0;
-          updatePayload.unit = isPractice ? 1 : (updates.unit && updates.unit >= 1 && updates.unit <= 5 ? updates.unit : 1);
+          const isPractice = updates.is_practice !== undefined ? updates.is_practice : (updates.unit === 0);
+          updatePayload.unit = (updates.unit && updates.unit >= 1 && updates.unit <= 5) ? updates.unit : 1;
           if (isPractice) {
             updatePayload.description = updatePayload.description 
               ? (updatePayload.description.includes('[PRACTICE]') ? updatePayload.description : `[PRACTICE] ${updatePayload.description}`)
@@ -340,6 +340,7 @@ export const DataService = {
         return {
           ...n,
           ...updates,
+          unit: updates.unit !== undefined ? updates.unit : n.unit,
           is_practice: isPractice,
         };
       }
