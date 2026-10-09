@@ -214,8 +214,14 @@ export default function AdminNotesPage() {
                   </span>
 
                   <div>
-                    <span className="inline-block rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
-                      Unit {note.unit || 1}
+                    <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${
+                      note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]')
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'bg-blue-50 text-blue-700'
+                    }`}>
+                      {note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]')
+                        ? '📌 Practice'
+                        : `Unit ${note.unit || 1}`}
                     </span>
                   </div>
 

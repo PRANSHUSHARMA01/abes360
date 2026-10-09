@@ -39,6 +39,17 @@ function setLocalItem<T>(key: string, value: T): void {
   }
 }
 
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export const DataService = {
   // BRANCHES
   async getBranches(): Promise<Branch[]> {
@@ -137,13 +148,13 @@ export const DataService = {
   async addTimetableSlot(slotData: Omit<TimetableSlot, 'id'>): Promise<TimetableSlot> {
     const newSlot: TimetableSlot = {
       ...slotData,
-      id: 'slot-' + Date.now(),
+      id: generateUUID(),
     };
 
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
         .from('timetable_slots')
-        .insert([slotData])
+        .insert([newSlot])
         .select()
         .single();
       if (!error && data) return data;
@@ -217,37 +228,62 @@ export const DataService = {
     if (semester) allNotes = allNotes.filter((n) => n.semester === semester);
     if (subjectId) allNotes = allNotes.filter((n) => n.subject_id === subjectId);
 
-    return allNotes.map((note) => ({
-      ...note,
-      is_practice: Boolean(note.is_practice || note.unit === 0 || note.description?.includes('[PRACTICE]')),
-      subject: note.subject || subjects.find((s) => s.id === note.subject_id),
-      branch: note.branch || branches.find((b) => b.id === note.branch_id),
-    }));
+    return allNotes.map((note) => {
+      const isPractice = Boolean(
+        note.is_practice || 
+        note.unit === 0 || 
+        (note.description && note.description.includes('[PRACTICE]')) ||
+        (note.title && note.title.toLowerCase().includes('[practice]'))
+      );
+      return {
+        ...note,
+        is_practice: isPractice,
+        subject: note.subject || subjects.find((s) => s.id === note.subject_id),
+        branch: note.branch || branches.find((b) => b.id === note.branch_id),
+      };
+    });
   },
 
   async addNote(noteData: Omit<Note, 'id' | 'created_at'>): Promise<Note> {
+    const isPracticeNote = Boolean(
+      noteData.is_practice || 
+      noteData.unit === 0 || 
+      noteData.description?.includes('[PRACTICE]')
+    );
+
+    const safeDescription = isPracticeNote 
+      ? (noteData.description?.includes('[PRACTICE]') ? noteData.description : `[PRACTICE] ${noteData.description || ''}`)
+      : (noteData.description || '');
+
     const newNote: Note = {
       ...noteData,
-      id: 'note-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      id: generateUUID(),
+      unit: isPracticeNote ? 0 : (noteData.unit !== undefined ? noteData.unit : 1),
+      description: safeDescription,
+      is_practice: isPracticeNote,
       created_at: new Date().toISOString(),
     };
 
     if (isSupabaseConfigured) {
       try {
-        const { error } = await supabase.from('notes').insert([{
+        // Supabase check constraint requires unit to be between 1 and 5
+        const supabaseUnit = (noteData.unit && noteData.unit >= 1 && noteData.unit <= 5) ? noteData.unit : 1;
+        const { data: supaData, error } = await supabase.from('notes').insert([{
           id: newNote.id,
           branch_id: newNote.branch_id,
           subject_id: newNote.subject_id,
           semester: newNote.semester,
-          unit: newNote.unit,
+          unit: supabaseUnit,
           title: newNote.title,
           file_path: newNote.file_path || '',
-          description: newNote.description || '',
+          description: safeDescription,
           created_at: newNote.created_at,
-        }]);
+        }]).select().single();
 
         if (error) {
           console.warn('Supabase insert note notice:', error.message);
+        } else if (supaData?.id) {
+          newNote.id = supaData.id;
         }
       } catch (err) {
         console.warn('Supabase note insert exception:', err);
@@ -255,7 +291,6 @@ export const DataService = {
     }
 
     const currentNotes = getLocalItem<Note[]>(STORAGE_KEYS.NOTES, INITIAL_NOTES);
-    // If there is an existing empty placeholder note for the same subject & unit, replace it with the uploaded note
     const filtered = currentNotes.filter((n) => {
       if (n.subject_id === newNote.subject_id && n.unit === newNote.unit && !n.file_path) {
         return false;
